@@ -192,21 +192,3 @@ Potential future enhancements:
 * Collaborative editing
 * Budget breakdown per destination
 
----
-
-## 📄 License
-
-MIT License
-
-You are free to use, modify, and distribute.
-
----
-
-If you’d like, I can also:
-
-* Write a shorter “portfolio-style” README (if this is for showcasing your work)
-* Write a more technical developer README
-* Add badges and screenshots section
-* Create a GitHub repo description line and tags
-
-Just tell me how you plan to use it.
