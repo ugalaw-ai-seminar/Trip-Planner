@@ -1,14 +1,4 @@
 # Trip-Planner
-Trip planner
-Absolutely. Here’s a clean, professional **README.md** you can drop directly into GitHub for your trip planner app.
-
-You can copy everything below into a file named:
-
-```
-README.md
-```
-
----
 
 # ✈️ Trip Planner — Options + Itinerary + AI Recommendations
 
