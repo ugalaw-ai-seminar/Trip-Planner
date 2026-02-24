@@ -1,0 +1,3114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Trip Planner — Options + Itinerary + To Pack</title>
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#14151a;
+      --muted:#5a6072;
+      --line:rgba(20,21,26,.10);
+      --shadow: 0 10px 28px rgba(20,21,26,.10);
+      --radius2:22px;
+
+      --accent:#6d5cff;
+      --accent2:#00c2ff;
+
+      --good:#20c997;
+      --warn:#f6b73c;
+      --bad:#ff4d6d;
+
+      --hotel:#3b82f6;
+      --restaurant:#f59e0b;
+      --activity:#10b981;
+      --transport:#9ca3af;
+
+      --chip:#eef0ff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1100px 700px at 10% -10%, rgba(109,92,255,.18), transparent 55%),
+                  radial-gradient(900px 600px at 95% 0%, rgba(0,194,255,.16), transparent 50%),
+                  var(--bg);
+      color:var(--text);
+    }
+
+    header{
+      padding: 22px 18px 8px;
+      max-width: 1200px;
+      margin: 0 auto;
+      display:flex;
+      gap:16px;
+      align-items:flex-start;
+      justify-content:space-between;
+    }
+    .title{ display:flex; gap:12px; align-items:center; }
+    .logo{
+      width:44px;height:44px;border-radius:14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 10px 22px rgba(109,92,255,.22);
+    }
+    h1{ margin:0; font-size: 20px; letter-spacing:-.2px; }
+    .sub{ margin:4px 0 0; color:var(--muted); font-size: 13px; line-height:1.35; }
+
+    .toolbar{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    button{
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 12px;
+      font-size: 13px;
+      cursor:pointer;
+      box-shadow: 0 6px 18px rgba(20,21,26,.06);
+      transition: transform .08s ease, box-shadow .12s ease, border-color .12s ease;
+      user-select:none;
+    }
+    button:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(20,21,26,.10);
+      border-color: rgba(20,21,26,.18);
+    }
+    button.primary{
+      background: linear-gradient(135deg, rgba(109,92,255,.98), rgba(0,194,255,.92));
+      color:white;
+      border-color: rgba(255,255,255,.22);
+    }
+    button.danger{ color: var(--bad); }
+    button.good{ color: var(--good); }
+    button.small{ padding: 7px 10px; font-size: 12px; box-shadow:none; }
+    button.ghost{ background: rgba(246,247,251,.7); box-shadow:none; }
+
+    main{
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 10px 18px 34px;
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap: 14px;
+      align-items:start;
+    }
+    @media (max-width: 1040px){
+      main{ grid-template-columns: 1fr; }
+    }
+
+    .panel{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius2);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+    @media (min-width: 1041px){
+      .panel{
+        position: sticky;
+        top: 14px;
+        max-height: calc(100vh - 28px);
+        overflow: auto;
+      }
+    }
+    .panel h2{ margin: 0 0 10px; font-size: 14px; letter-spacing:.2px; }
+    label{ display:block; font-size: 12px; color: var(--muted); margin: 10px 0 6px; }
+    input, select, textarea{
+      width:100%;
+      border: 1px solid rgba(20,21,26,.14);
+      border-radius: 12px;
+      padding: 10px 10px;
+      font-size: 13px;
+      background: white;
+      outline:none;
+    }
+    textarea{ min-height: 70px; resize: vertical; }
+    input:focus, select:focus, textarea:focus{
+      border-color: rgba(109,92,255,.55);
+      box-shadow: 0 0 0 3px rgba(109,92,255,.16);
+    }
+    .row{ display:flex; gap:10px; }
+    .row > *{ flex:1; }
+    .help{ font-size: 12px; color: var(--muted); margin-top: 10px; line-height:1.4; }
+    .hr{ height:1px; background: var(--line); margin: 12px 0; }
+    .mutedSmall{ font-size:11px; color: var(--muted); }
+    .hidden{ display:none !important; }
+
+    .tabs{ display:flex; gap:8px; flex-wrap:wrap; }
+    .tab{
+      border:1px solid var(--line);
+      background: rgba(246,247,251,.9);
+      border-radius: 999px;
+      padding: 9px 11px;
+      font-size: 12px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .tab.active{
+      background: linear-gradient(135deg, rgba(109,92,255,.14), rgba(0,194,255,.10));
+      border-color: rgba(109,92,255,.22);
+      font-weight: 900;
+      color:#2c2f64;
+    }
+
+    .viewTabsWrap{
+      background: rgba(255,255,255,.72);
+      border: 1px solid var(--line);
+      border-radius: var(--radius2);
+      box-shadow: 0 8px 22px rgba(20,21,26,.06);
+      padding: 12px;
+      margin-bottom: 12px;
+      position: sticky;
+      top: 14px;
+      z-index: 5;
+      backdrop-filter: blur(8px);
+    }
+    @media (max-width: 1040px){
+      .viewTabsWrap{ position: static; }
+    }
+
+    .card{
+      border: 1px solid var(--line);
+      border-radius: var(--radius2);
+      background: rgba(255,255,255,.85);
+      box-shadow: 0 8px 22px rgba(20,21,26,.06);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .badge{
+      font-size: 11px;
+      border: 1px solid rgba(20,21,26,.12);
+      border-radius: 999px;
+      padding: 5px 9px;
+      background: white;
+      color: var(--muted);
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+    }
+    .badge.warn{
+      border-color: rgba(246,183,60,.38);
+      background: rgba(246,183,60,.12);
+      color: #7a4d00;
+      font-weight: 800;
+    }
+    .badge.good{
+      border-color: rgba(32,201,151,.30);
+      background: rgba(32,201,151,.10);
+      color: #0c6b50;
+      font-weight: 800;
+    }
+
+    .destHeader{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      justify-content:space-between;
+      user-select:none;
+    }
+    .destTitle{
+      font-weight: 950;
+      letter-spacing:-.3px;
+      font-size: 18px;
+      line-height: 1.15;
+    }
+    .destMeta{
+      font-size: 12px;
+      color: var(--muted);
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin-top: 6px;
+    }
+    .destActions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+
+    .sectionTitle{
+      font-size: 12px;
+      color: var(--muted);
+      margin: 10px 0 8px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .list{ display:flex; flex-direction:column; gap:10px; }
+
+    .opt{
+      border: 1px solid rgba(20,21,26,.12);
+      border-radius: 16px;
+      padding: 10px 10px;
+      background: white;
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items:start;
+    }
+    .opt.color-hotel{ border-left: 6px solid rgba(59,130,246,.55); }
+    .opt.color-restaurant{ border-left: 6px solid rgba(245,158,11,.55); }
+    .opt.color-activity{ border-left: 6px solid rgba(16,185,129,.55); }
+
+    .optTop{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .name{ font-weight: 850; letter-spacing:-.1px; font-size: 13px; line-height: 1.25; }
+    .mini{ font-size: 12px; color: var(--muted); margin-top:4px; display:flex; gap:10px; flex-wrap:wrap; }
+    .link{ font-size: 12px; color: var(--accent); text-decoration:none; word-break:break-all; }
+    .link:hover{ text-decoration:underline; }
+    .pillSel{
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 5px 8px;
+      border: 1px solid rgba(32,201,151,.30);
+      background: rgba(32,201,151,.10);
+      color: #0c6b50;
+      font-weight: 800;
+    }
+    .pillAlt{
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 5px 8px;
+      border: 1px solid rgba(246,183,60,.35);
+      background: rgba(246,183,60,.12);
+      color: #7a4d00;
+      font-weight: 800;
+    }
+
+    .chipRow{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+    .chip{
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 5px 8px;
+      border: 1px solid rgba(20,21,26,.10);
+      background: var(--chip);
+      color: #2c2f64;
+      font-weight: 700;
+    }
+
+    .inlineEdit{
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      white-space: pre-wrap;
+      border: 1px dashed rgba(20,21,26,.16);
+      border-radius: 12px;
+      padding: 8px 8px;
+      background: rgba(246,247,251,.45);
+    }
+    .inlineEdit[contenteditable="true"]:focus{
+      outline:none;
+      border-color: rgba(109,92,255,.45);
+      box-shadow: 0 0 0 3px rgba(109,92,255,.10);
+      background: white;
+      color: var(--text);
+    }
+    .inlineHint{ font-size:11px; color: var(--muted); margin-top:6px; }
+
+    .bar{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top: 10px;
+    }
+    .bar input, .bar select{
+      width:auto;
+      min-width: 180px;
+    }
+    .bar .grow{ flex: 1; min-width: 220px; }
+
+    .dayStripWrap{
+      margin: 6px 0 12px;
+      display:flex;
+      gap:8px;
+      overflow:auto;
+      padding-bottom: 6px;
+    }
+    .dayChip{
+      white-space: nowrap;
+      border:1px solid var(--line);
+      background: rgba(246,247,251,.85);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-size: 12px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .dayChip.active{
+      background: linear-gradient(135deg, rgba(109,92,255,.16), rgba(0,194,255,.12));
+      border-color: rgba(109,92,255,.22);
+      font-weight: 900;
+      color:#2c2f64;
+    }
+
+    .day{
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius2);
+      background: rgba(255,255,255,.82);
+      box-shadow: 0 8px 22px rgba(20,21,26,.06);
+      margin-bottom: 12px;
+    }
+    .dayHeader{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      justify-content:space-between;
+      cursor:pointer;
+      user-select:none;
+    }
+    .dayTitle{ font-weight: 900; letter-spacing:-.2px; }
+    .dayMeta{
+      font-size: 12px;
+      color: var(--muted);
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin-top:4px;
+    }
+    .items{ margin-top: 10px; display:flex; flex-direction:column; gap:10px; }
+    .item{
+      border: 1px solid rgba(20,21,26,.12);
+      border-radius: 16px;
+      padding: 10px 10px;
+      background: white;
+      display:grid;
+      grid-template-columns: 112px 1fr auto;
+      gap: 10px;
+      align-items:start;
+    }
+    .item.color-hotel{ border-left: 6px solid rgba(59,130,246,.55); }
+    .item.color-restaurant{ border-left: 6px solid rgba(245,158,11,.55); }
+    .item.color-activity{ border-left: 6px solid rgba(16,185,129,.55); }
+    .item.color-transport{ border-left: 6px solid rgba(156,163,175,.65); }
+
+    .item.dragging{
+      opacity:.65;
+      transform: rotate(-.4deg);
+      border-color: rgba(109,92,255,.55);
+      box-shadow: 0 12px 28px rgba(109,92,255,.16);
+    }
+    .timeBox{
+      font-weight: 800;
+      font-size: 12px;
+      color: #2c2f64;
+      background: rgba(109,92,255,.10);
+      border: 1px solid rgba(109,92,255,.22);
+      border-radius: 12px;
+      padding: 8px 8px;
+      text-align:center;
+    }
+    .timeInline{
+      margin-top:8px;
+      width:100%;
+      border: 1px dashed rgba(20,21,26,.16);
+      border-radius: 10px;
+      padding: 6px 6px;
+      background: rgba(246,247,251,.45);
+      font-size: 12px;
+      color: var(--muted);
+      text-align:center;
+    }
+    .timeInline:focus{
+      outline:none;
+      background:white;
+      color: var(--text);
+      border-color: rgba(109,92,255,.45);
+      box-shadow: 0 0 0 3px rgba(109,92,255,.10);
+    }
+    .cat{
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 4px 8px;
+      border: 1px solid rgba(20,21,26,.12);
+      color: var(--muted);
+      background: rgba(246,247,251,.8);
+    }
+    .pillRef{
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 5px 8px;
+      border: 1px solid rgba(109,92,255,.28);
+      background: rgba(109,92,255,.10);
+      color: #2c2f64;
+      font-weight: 800;
+    }
+    .itemRight{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:8px;
+    }
+    .warnText{
+      font-size: 11px;
+      color:#7a4d00;
+      background: rgba(246,183,60,.12);
+      border: 1px solid rgba(246,183,60,.32);
+      padding: 6px 8px;
+      border-radius: 12px;
+      max-width: 280px;
+      text-align:right;
+    }
+    .dimOnTravel{ opacity: .65; }
+
+    .bigMode{
+      border: 1px solid rgba(20,21,26,.10);
+      background: rgba(246,247,251,.8);
+      border-radius: 16px;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+    .bigModeTop{
+      display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    }
+    .bigModeTitle{ font-weight: 950; letter-spacing:-.2px; }
+    .bigItemBtnRow{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    .packGroup{
+      border: 1px solid rgba(20,21,26,.12);
+      border-radius: 16px;
+      background: white;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .packHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .packTitle{ font-weight: 900; }
+    .packMeta{ display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
+    .packRow{
+      border-top: 1px solid rgba(20,21,26,.08);
+      padding: 10px 0 0;
+      margin-top: 10px;
+      display:grid;
+      grid-template-columns: 26px 1fr auto;
+      gap: 10px;
+      align-items:start;
+    }
+    .check{
+      width:18px;height:18px;
+      margin-top: 2px;
+      accent-color: var(--accent);
+    }
+    .packName{
+      font-weight: 850;
+      font-size: 13px;
+      letter-spacing:-.1px;
+      line-height:1.25;
+    }
+
+    dialog{
+      border: 1px solid rgba(20,21,26,.12);
+      border-radius: 18px;
+      padding: 14px;
+      width: min(740px, 92vw);
+      box-shadow: 0 20px 60px rgba(20,21,26,.25);
+    }
+    dialog::backdrop{ background: rgba(20,21,26,.35); }
+    .dlgTitle{ font-weight: 950; letter-spacing:-.2px; margin: 0 0 10px; font-size: 14px; }
+    .dlgActions{ display:flex; justify-content:flex-end; gap:10px; margin-top: 12px; flex-wrap:wrap; }
+
+    .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 740px){ .grid2{ grid-template-columns: 1fr; } }
+
+    @media print{
+      header, .panel, dialog, .viewTabsWrap{ display:none !important; }
+      main{ grid-template-columns: 1fr; }
+      body{ background:white; }
+      .day,.card{ break-inside: avoid; box-shadow:none; }
+      .item,.opt,.packGroup,.bigMode{ break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="title">
+    <div class="logo"></div>
+    <div>
+      <h1>Trip Planner — Options + Itinerary + To Pack</h1>
+      <div class="sub">Search + filters + shortlist, realistic scheduling tools, transport & lodging details, budget totals, “Today” mode, packing templates, suggestions, and Undo — while keeping everything you already had.</div>
+    </div>
+  </div>
+  <div class="toolbar">
+    <button id="btnUndo">Undo</button>
+    <button id="btnPrint">Print</button>
+    <button id="btnExport">Export</button>
+    <button id="btnImport">Import</button>
+    <button class="danger" id="btnReset">Reset</button>
+    <button class="primary" id="btnAddDayTop">+ Add Day</button>
+    <button class="primary" id="btnAddDestTop">+ Add Destination</button>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT PANEL -->
+  <section class="panel">
+    <h2>Controls</h2>
+
+    <label>Trip name</label>
+    <input id="tripName" />
+
+    <div class="hr"></div>
+
+    <div class="tabs" role="tablist" aria-label="Left controls mode">
+      <div class="tab active" id="tabOpt" role="tab">Add Option</div>
+      <div class="tab" id="tabItin" role="tab">Add Itinerary Item</div>
+      <div class="tab" id="tabPack" role="tab">To Pack</div>
+    </div>
+
+    <!-- OPTIONS FORM -->
+    <div id="optForm">
+      <label>Destination</label>
+      <select id="destSelect"></select>
+
+      <div class="row">
+        <div>
+          <label>Option type</label>
+          <select id="optType">
+            <option value="hotels">Hotel</option>
+            <option value="restaurants">Restaurant</option>
+            <option value="activities">Activity</option>
+          </select>
+        </div>
+        <div>
+          <label>Mark as</label>
+          <select id="optPick">
+            <option value="alt">Alternative</option>
+            <option value="selected">Selected</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Name</label>
+      <input id="optName" />
+
+      <div class="row">
+        <div>
+          <label>Neighborhood / area</label>
+          <input id="optArea" />
+        </div>
+        <div>
+          <label>Estimated cost</label>
+          <input id="optCost" inputmode="decimal" />
+        </div>
+      </div>
+
+      <label>Link</label>
+      <input id="optLink" />
+
+      <label>Tags (comma-separated)</label>
+      <input id="optTags" />
+
+      <div class="row">
+        <div>
+          <label>Rating (1–5)</label>
+          <input id="optRating" inputmode="numeric" />
+        </div>
+        <div>
+          <label>Reservation needed?</label>
+          <select id="optResNeeded">
+            <option value="false">No / unsure</option>
+            <option value="true">Yes</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Pros (one line)</label>
+      <input id="optPros" />
+
+      <label>Cons (one line)</label>
+      <input id="optCons" />
+
+      <label>Notes</label>
+      <textarea id="optNotes"></textarea>
+
+      <button class="primary" id="btnAddOption" style="width:100%; margin-top:10px;">Add option</button>
+      <div class="help">You can mark <b>multiple</b> options as “Selected.”</div>
+
+      <div class="hr"></div>
+
+      <div class="row">
+        <div>
+          <button class="ghost" id="btnEditDest" style="width:100%;">Edit selected destination</button>
+        </div>
+        <div>
+          <button class="ghost" id="btnAddDest" style="width:100%;">+ Destination</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ITINERARY FORM -->
+    <div id="itinForm" class="hidden">
+      <label>Add to day</label>
+      <select id="daySelect"></select>
+
+      <label>Destination</label>
+      <select id="itinDestSelect"></select>
+
+      <div class="row">
+        <div>
+          <label>Time</label>
+          <input id="time" />
+        </div>
+        <div>
+          <label>Category</label>
+          <select id="category">
+            <option>Hotel</option>
+            <option>Restaurant</option>
+            <option>Activity</option>
+            <option>Transport</option>
+            <option>Cafe / Gelato</option>
+            <option>Museum / Sight</option>
+            <option>Shopping</option>
+            <option>Day Trip</option>
+            <option>Note</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Item name</label>
+      <input id="name" />
+
+      <label>Tags (comma-separated)</label>
+      <input id="itinTags" />
+
+      <div class="row">
+        <div>
+          <label>Time-block template</label>
+          <select id="timeTemplate">
+            <option value="">—</option>
+            <option value="09:00">Morning (09:00)</option>
+            <option value="12:00">Lunch (12:00)</option>
+            <option value="15:00">Afternoon (15:00)</option>
+            <option value="19:00">Dinner (19:00)</option>
+            <option value="21:00">Night (21:00)</option>
+          </select>
+        </div>
+        <div>
+          <label>Buffer after (minutes)</label>
+          <input id="bufferMin" inputmode="numeric" />
+        </div>
+      </div>
+
+      <label>Link to an option</label>
+      <select id="optionRef">
+        <option value="">— No linked option —</option>
+      </select>
+
+      <div class="row">
+        <div>
+          <label>Estimated cost</label>
+          <input id="cost" inputmode="decimal" />
+        </div>
+        <div>
+          <label>Status</label>
+          <select id="status">
+            <option value="planned">Planned</option>
+            <option value="booked">Booked</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Notes</label>
+      <textarea id="notes"></textarea>
+
+      <button class="primary" id="btnAddItem" style="width:100%; margin-top:10px;">Add itinerary item</button>
+
+      <div class="hr"></div>
+      <div class="row">
+        <div>
+          <button class="ghost" id="btnEditDay" style="width:100%;">Edit selected day</button>
+        </div>
+        <div>
+          <button class="ghost" id="btnAddDay" style="width:100%;">+ Day</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PACK FORM -->
+    <div id="packForm" class="hidden">
+      <label>Template</label>
+      <select id="packTemplate">
+        <option value="">— Choose a template —</option>
+        <option value="europe_city">Europe City</option>
+        <option value="beach">Beach</option>
+        <option value="winter">Winter</option>
+        <option value="business">Business</option>
+      </select>
+      <button class="ghost" id="btnApplyTemplate" style="width:100%; margin-top:10px;">Apply template</button>
+
+      <div class="hr"></div>
+
+      <label>Item</label>
+      <input id="packName" />
+
+      <div class="row">
+        <div>
+          <label>Category</label>
+          <input id="packCategory" />
+        </div>
+        <div>
+          <label>Qty</label>
+          <input id="packQty" inputmode="numeric" />
+        </div>
+      </div>
+
+      <label>Notes</label>
+      <textarea id="packNotes"></textarea>
+
+      <button class="primary" id="btnAddPack" style="width:100%; margin-top:10px;">Add to pack</button>
+
+      <div class="help">Packing list groups by category automatically. Suggestions can be generated from your option tags & itinerary tags.</div>
+
+      <!-- NEW: toggle + renamed button -->
+      <label style="margin-top:12px;">
+        <input type="checkbox" id="packUseSelectedOnly" style="width:auto; margin-right:8px;" />
+        Use <b>Selected</b> options only (recommended)
+      </label>
+      <button class="ghost" id="btnSuggestPack" style="width:100%; margin-top:10px;">Suggest packing from options + itinerary</button>
+    </div>
+
+    <div class="hr"></div>
+    <div class="mutedSmall" id="saveHint">Autosave: on</div>
+    <input id="fileImport" type="file" accept="application/json" class="hidden" />
+  </section>
+
+  <!-- RIGHT SIDE -->
+  <section>
+    <div class="viewTabsWrap">
+      <div class="tabs" role="tablist" aria-label="Main views">
+        <div class="tab active" id="viewTabOptions" role="tab">Destination Options</div>
+        <div class="tab" id="viewTabItinerary" role="tab">Day-to-Day Itinerary</div>
+        <div class="tab" id="viewTabPack" role="tab">To Pack</div>
+      </div>
+
+      <div class="bar">
+        <input id="globalSearch" class="grow" placeholder="Search across options, itinerary, and packing…" />
+        <select id="globalFilter">
+          <option value="all">Show: All</option>
+          <option value="selected">Options: Selected only</option>
+          <option value="booked">Itinerary: Booked only</option>
+          <option value="planned">Itinerary: Planned only</option>
+          <option value="done">Itinerary: Done only</option>
+          <option value="skipped">Itinerary: Skipped only</option>
+          <option value="pack_done">Pack: Packed only</option>
+          <option value="pack_todo">Pack: Not packed</option>
+        </select>
+        <button class="small" id="btnShortlist">Shortlist</button>
+      </div>
+
+      <div class="mutedSmall" style="margin-top:8px;">Search + filters apply to the current tab. “Shortlist” shows your Selected picks.</div>
+    </div>
+
+    <!-- OPTIONS VIEW -->
+    <div id="viewOptions">
+      <div class="card">
+        <div class="destHeader" style="cursor:default">
+          <div>
+            <div class="destTitle">Destination Options</div>
+            <div class="destMeta">
+              <span class="badge">Hotels • Restaurants • Activities</span>
+              <span class="badge">Multi-select “Selected”</span>
+              <span class="badge">Tags • Rating • Pros/Cons</span>
+            </div>
+          </div>
+          <div class="destActions">
+            <button class="small" id="optExpandAll">Expand All</button>
+            <button class="small" id="optCollapseAll">Collapse All</button>
+          </div>
+        </div>
+
+        <div class="bar">
+          <select id="optDestFilter">
+            <option value="">All destinations</option>
+          </select>
+          <select id="optTagFilter">
+            <option value="">All tags</option>
+          </select>
+        </div>
+
+        <div id="destinations"></div>
+      </div>
+    </div>
+
+    <!-- ITINERARY VIEW -->
+    <div id="viewItinerary" class="hidden">
+      <div class="card">
+        <div class="destHeader" style="cursor:default">
+          <div>
+            <div class="destTitle">Day-to-Day Itinerary</div>
+            <div class="destMeta">
+              <span class="badge">Drag reorder</span>
+              <span class="badge">Time templates • Auto-sort</span>
+              <span class="badge">Travel day toggle</span>
+              <span class="badge warn">⚠ soft warnings + buffers</span>
+            </div>
+          </div>
+          <div class="destActions">
+            <button class="small" id="itinExpandAll">Expand All</button>
+            <button class="small" id="itinCollapseAll">Collapse All</button>
+            <button class="small" id="btnAutoSort">Auto-sort by time</button>
+            <button class="small" id="btnTodayMode">Today view</button>
+          </div>
+        </div>
+
+        <div class="dayStripWrap" id="dayStrip"></div>
+
+        <div class="bigMode hidden" id="todayWrap">
+          <div class="bigModeTop">
+            <div>
+              <div class="bigModeTitle" id="todayTitle">Today</div>
+              <div class="mutedSmall" id="todayMeta"></div>
+            </div>
+            <div class="bigItemBtnRow">
+              <button class="small" id="todayPrev">◀ Prev</button>
+              <button class="small" id="todayNext">Next ▶</button>
+              <button class="small" id="todayExit">Exit</button>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <div id="todayItems"></div>
+        </div>
+
+        <div id="days"></div>
+      </div>
+    </div>
+
+    <!-- PACK VIEW -->
+    <div id="viewPack" class="hidden">
+      <div class="card">
+        <div class="destHeader" style="cursor:default">
+          <div>
+            <div class="destTitle">To Pack</div>
+            <div class="destMeta">
+              <span class="badge">Grouped by category</span>
+              <span class="badge">Progress per category</span>
+              <span class="badge">Templates + suggestions</span>
+            </div>
+          </div>
+          <div class="destActions">
+            <button class="small" id="packExpandAll">Expand All</button>
+            <button class="small" id="packCollapseAll">Collapse All</button>
+          </div>
+        </div>
+
+        <div class="bar">
+          <select id="packCatFilter">
+            <option value="">All categories</option>
+          </select>
+        </div>
+
+        <div id="pack"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Destination edit dialog -->
+<dialog id="destDialog">
+  <div class="dlgTitle">Edit destination</div>
+  <label>Name</label>
+  <input id="dlgDestName" />
+  <label>Emoji</label>
+  <input id="dlgDestEmoji" />
+  <div class="row">
+    <div>
+      <label>Start date</label>
+      <input id="dlgDestStart" type="date" />
+    </div>
+    <div>
+      <label>End date</label>
+      <input id="dlgDestEnd" type="date" />
+    </div>
+  </div>
+
+  <div class="hr"></div>
+  <div class="dlgTitle" style="font-size:13px;margin-top:4px;">Lodging defaults</div>
+  <div class="grid2">
+    <div>
+      <label>Hotel address (default)</label>
+      <input id="dlgLodgeAddr" />
+    </div>
+    <div>
+      <label>Check-in / out (default)</label>
+      <input id="dlgLodgeCheck" />
+    </div>
+    <div>
+      <label>Cancellation policy (default)</label>
+      <input id="dlgLodgeCancel" />
+    </div>
+    <div>
+      <label>Book-by date (default)</label>
+      <input id="dlgLodgeBy" type="date" />
+    </div>
+  </div>
+
+  <div class="dlgActions">
+    <button id="dlgDestCancel">Cancel</button>
+    <button class="primary" id="dlgDestSave">Save</button>
+  </div>
+</dialog>
+
+<!-- Option details dialog -->
+<dialog id="optDialog">
+  <div class="dlgTitle">Edit option details</div>
+  <div class="grid2">
+    <div>
+      <label>Address</label>
+      <input id="dlgOptAddress" />
+    </div>
+    <div>
+      <label>Book-by date</label>
+      <input id="dlgOptBookBy" type="date" />
+    </div>
+    <div>
+      <label>Check-in/out</label>
+      <input id="dlgOptCheck" />
+    </div>
+    <div>
+      <label>Cancellation policy</label>
+      <input id="dlgOptCancel" />
+    </div>
+  </div>
+  <div class="dlgActions">
+    <button id="dlgOptCancelBtn">Cancel</button>
+    <button class="primary" id="dlgOptSaveBtn">Save</button>
+  </div>
+</dialog>
+
+<!-- Itinerary tools dialog -->
+<dialog id="itinDialog">
+  <div class="dlgTitle">Itinerary tools</div>
+
+  <div class="grid2">
+    <div>
+      <label>Duplicate / move to day</label>
+      <select id="dlgItinTargetDay"></select>
+    </div>
+    <div>
+      <label>Action</label>
+      <select id="dlgItinAction">
+        <option value="duplicate">Duplicate</option>
+        <option value="move">Move</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="hr"></div>
+  <div class="dlgTitle" style="font-size:13px;margin-top:4px;">Transport segment</div>
+  <div class="grid2">
+    <div><label>From</label><input id="dlgTrFrom" /></div>
+    <div><label>To</label><input id="dlgTrTo" /></div>
+    <div><label>Mode</label><input id="dlgTrMode" /></div>
+    <div><label>Confirmation #</label><input id="dlgTrConf" /></div>
+    <div><label>Depart</label><input id="dlgTrDepart" /></div>
+    <div><label>Arrive</label><input id="dlgTrArrive" /></div>
+  </div>
+
+  <div class="dlgActions">
+    <button id="dlgItinCancel">Cancel</button>
+    <button class="primary" id="dlgItinSave">Save</button>
+  </div>
+</dialog>
+
+<!-- Shortlist dialog -->
+<dialog id="shortlistDialog">
+  <div class="dlgTitle">Shortlist — Selected picks</div>
+  <div class="mutedSmall">Everything marked “Selected,” grouped by destination.</div>
+  <div class="hr"></div>
+  <div id="shortlistBody"></div>
+  <div class="dlgActions">
+    <button id="shortlistClose">Close</button>
+  </div>
+</dialog>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const STORAGE_KEY = "tripPlanner_v5_all_requested_features";
+  const uid = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
+
+  const PACK_TEMPLATES = {
+    europe_city: [
+      ["Documents","Passport/ID"],["Documents","Wallet/cards"],["Documents","Travel insurance info"],["Documents","Hotel confirmations"],
+      ["Tech","Phone + charger"],["Tech","Adapter (EU)"],["Tech","Power bank"],
+      ["Toiletries","Toothbrush/toothpaste"],["Toiletries","Shampoo/conditioner"],["Toiletries","Deodorant"],["Toiletries","Skincare"],
+      ["Clothes","Walking shoes"],["Clothes","Nice outfit"],["Clothes","Socks/underwear"],["Clothes","Light jacket"],["Clothes","Rain layer"]
+    ],
+    beach: [
+      ["Beach","Swimsuits"],["Beach","Cover-up"],["Beach","Sandals"],["Beach","Beach bag"],["Beach","Sunscreen"],["Beach","After-sun"],["Beach","Hat"],["Beach","Sunglasses"]
+    ],
+    winter: [
+      ["Clothes","Coat"],["Clothes","Boots"],["Clothes","Gloves"],["Clothes","Hat"],["Clothes","Thermals"],["Clothes","Scarf"]
+    ],
+    business: [
+      ["Work","Suit / blazer"],["Work","Dress shoes"],["Work","Laptop + charger"],["Work","Notebook"],["Work","Business cards"],["Toiletries","Lint roller"]
+    ]
+  };
+
+  const PACK_SUGGEST_MAP = [
+    { tag:"hiking", items:[["Gear","Hiking shoes"],["Gear","Water bottle"],["Gear","Small daypack"],["Toiletries","Blister care"]]},
+    { tag:"beach", items:[["Beach","Swimsuit"],["Beach","Sunscreen"],["Beach","Hat"],["Beach","Sandals"]]},
+    { tag:"rain", items:[["Clothes","Packable rain jacket"],["Gear","Umbrella"]]},
+    { tag:"gym", items:[["Clothes","Workout clothes"],["Clothes","Sneakers"]]},
+    { tag:"fancy", items:[["Clothes","Formal outfit"],["Toiletries","Jewelry / accessories"]]},
+    { tag:"ski", items:[["Gear","Goggles"],["Clothes","Thermals"],["Clothes","Gloves"]]},
+    { tag:"daytrip", items:[["Gear","Small daypack"],["Gear","Snacks"],["Tech","Portable charger"]]}
+  ];
+
+  const defaultState = () => ({
+    tripName: "My Trip",
+    ui: {
+      leftTab: "opt",
+      rightView: "options",
+      lastDestId: "",
+      lastOptType: "hotels",
+      lastOptPick: "alt",
+      lastDayId: "",
+      lastItinDestId: "",
+      packCollapsed: {},
+      globalSearch: "",
+      globalFilter: "all",
+      optDestFilter: "",
+      optTagFilter: "",
+      packCatFilter: "",
+      todayMode: false,
+      todayDayId: "",
+      undo: [],
+      packSuggestSelectedOnly: true
+    },
+    destinations: [
+      {
+        id: uid(),
+        name: "Destination 1",
+        emoji:"",
+        startDate:"",
+        endDate:"",
+        collapsed: false,
+        lodgingDefaults: { address:"", check:"", cancelPolicy:"", bookBy:"" },
+        hotels: [],
+        restaurants: [],
+        activities: []
+      }
+    ],
+    days: [
+      { id: uid(), title: "Day 1", date:"", destId:"", travelDay:false, collapsed:false, notesLoved:"", notesSkip:"", items: [] }
+    ],
+    pack: { items: [] }
+  });
+
+  let state = load() ?? defaultState();
+
+  const packUseSelectedOnlyEl = $("packUseSelectedOnly");
+  packUseSelectedOnlyEl.checked = !!state.ui.packSuggestSelectedOnly;
+  packUseSelectedOnlyEl.addEventListener("change", () => {
+    state.ui.packSuggestSelectedOnly = packUseSelectedOnlyEl.checked;
+    save(false);
+  });
+
+  function pushUndo(){
+    try{
+      const snapshot = JSON.stringify(state);
+      state.ui.undo = state.ui.undo || [];
+      state.ui.undo.push(snapshot);
+      if (state.ui.undo.length > 25) state.ui.undo.shift();
+    }catch(e){}
+  }
+  function doUndo(){
+    const stack = state.ui.undo || [];
+    if (!stack.length) return;
+    const prev = stack.pop();
+    try{
+      state = normalize(JSON.parse(prev));
+      save();
+      renderAll();
+    }catch(e){}
+  }
+  $("btnUndo").addEventListener("click", () => doUndo());
+
+  const tabOpt = $("tabOpt"), tabItin = $("tabItin"), tabPack = $("tabPack");
+  const optForm = $("optForm"), itinForm = $("itinForm"), packForm = $("packForm");
+
+  function setLeftTab(which){
+    state.ui.leftTab = which;
+    tabOpt.classList.toggle("active", which === "opt");
+    tabItin.classList.toggle("active", which === "itin");
+    tabPack.classList.toggle("active", which === "pack");
+    optForm.classList.toggle("hidden", which !== "opt");
+    itinForm.classList.toggle("hidden", which !== "itin");
+    packForm.classList.toggle("hidden", which !== "pack");
+    save(false);
+  }
+  tabOpt.addEventListener("click", () => setLeftTab("opt"));
+  tabItin.addEventListener("click", () => setLeftTab("itin"));
+  tabPack.addEventListener("click", () => setLeftTab("pack"));
+
+  const viewTabOptions = $("viewTabOptions");
+  const viewTabItinerary = $("viewTabItinerary");
+  const viewTabPack = $("viewTabPack");
+  const viewOptions = $("viewOptions");
+  const viewItinerary = $("viewItinerary");
+  const viewPack = $("viewPack");
+
+  function setRightView(which){
+    state.ui.rightView = which;
+
+    viewTabOptions.classList.toggle("active", which === "options");
+    viewTabItinerary.classList.toggle("active", which === "itinerary");
+    viewTabPack.classList.toggle("active", which === "pack");
+
+    viewOptions.classList.toggle("hidden", which !== "options");
+    viewItinerary.classList.toggle("hidden", which !== "itinerary");
+    viewPack.classList.toggle("hidden", which !== "pack");
+
+    if (which === "options") setLeftTab("opt");
+    if (which === "itinerary") setLeftTab("itin");
+    if (which === "pack") setLeftTab("pack");
+
+    save(false);
+    renderAll();
+  }
+
+  viewTabOptions.addEventListener("click", () => setRightView("options"));
+  viewTabItinerary.addEventListener("click", () => setRightView("itinerary"));
+  viewTabPack.addEventListener("click", () => setRightView("pack"));
+
+  const tripNameEl = $("tripName");
+
+  const destSelectEl = $("destSelect");
+  const optTypeEl = $("optType");
+  const optPickEl = $("optPick");
+  const optNameEl = $("optName");
+  const optAreaEl = $("optArea");
+  const optCostEl = $("optCost");
+  const optLinkEl = $("optLink");
+  const optTagsEl = $("optTags");
+  const optRatingEl = $("optRating");
+  const optResNeededEl = $("optResNeeded");
+  const optProsEl = $("optPros");
+  const optConsEl = $("optCons");
+  const optNotesEl = $("optNotes");
+
+  const daySelectEl = $("daySelect");
+  const itinDestSelectEl = $("itinDestSelect");
+  const optionRefEl = $("optionRef");
+  const timeEl = $("time");
+  const categoryEl = $("category");
+  const nameEl = $("name");
+  const itinTagsEl = $("itinTags");
+  const timeTemplateEl = $("timeTemplate");
+  const bufferMinEl = $("bufferMin");
+  const costEl = $("cost");
+  const statusEl = $("status");
+  const notesEl = $("notes");
+
+  const packNameEl = $("packName");
+  const packCategoryEl = $("packCategory");
+  const packQtyEl = $("packQty");
+  const packNotesEl = $("packNotes");
+
+  const destinationsWrap = $("destinations");
+  const daysWrap = $("days");
+  const packWrap = $("pack");
+  const dayStripEl = $("dayStrip");
+
+  const globalSearchEl = $("globalSearch");
+  const globalFilterEl = $("globalFilter");
+  globalSearchEl.value = state.ui.globalSearch || "";
+  globalFilterEl.value = state.ui.globalFilter || "all";
+  globalSearchEl.addEventListener("input", () => { state.ui.globalSearch = globalSearchEl.value; save(false); renderAll(); });
+  globalFilterEl.addEventListener("change", () => { state.ui.globalFilter = globalFilterEl.value; save(false); renderAll(); });
+
+  const optDestFilterEl = $("optDestFilter");
+  const optTagFilterEl = $("optTagFilter");
+  optDestFilterEl.addEventListener("change", () => { state.ui.optDestFilter = optDestFilterEl.value; save(false); renderAll(); });
+  optTagFilterEl.addEventListener("change", () => { state.ui.optTagFilter = optTagFilterEl.value; save(false); renderAll(); });
+
+  const packCatFilterEl = $("packCatFilter");
+  packCatFilterEl.addEventListener("change", () => { state.ui.packCatFilter = packCatFilterEl.value; save(false); renderAll(); });
+
+  const shortlistDlg = $("shortlistDialog");
+  $("btnShortlist").addEventListener("click", () => { renderShortlist(); shortlistDlg.showModal(); });
+  $("shortlistClose").addEventListener("click", () => shortlistDlg.close());
+
+  $("btnPrint").addEventListener("click", () => window.print());
+  $("btnAddDestTop").addEventListener("click", addDestination);
+  $("btnAddDayTop").addEventListener("click", addDay);
+
+  $("btnReset").addEventListener("click", () => {
+    const ok = confirm("Reset everything? This will erase your saved trip in this browser.");
+    if (!ok) return;
+    pushUndo();
+    state = defaultState();
+    save(); renderAll();
+  });
+
+  $("btnExport").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${(state.tripName || "trip").replace(/[^\w\-]+/g, "_").slice(0,50)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  });
+
+  $("btnImport").addEventListener("click", () => $("fileImport").click());
+  $("fileImport").addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try{
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (!data || !Array.isArray(data.days) || !Array.isArray(data.destinations)) throw new Error("Not a valid file.");
+      pushUndo();
+      state = normalize(data);
+      save(); renderAll();
+      alert("Imported successfully!");
+    }catch(err){
+      alert("Import failed: " + (err?.message || err));
+    }finally{
+      e.target.value = "";
+    }
+  });
+
+  $("optExpandAll").addEventListener("click", () => { pushUndo(); state.destinations.forEach(d => d.collapsed = false); save(); renderAll(); });
+  $("optCollapseAll").addEventListener("click", () => { pushUndo(); state.destinations.forEach(d => d.collapsed = true); save(); renderAll(); });
+
+  $("itinExpandAll").addEventListener("click", () => { pushUndo(); state.days.forEach(d => d.collapsed = false); save(); renderAll(); });
+  $("itinCollapseAll").addEventListener("click", () => { pushUndo(); state.days.forEach(d => d.collapsed = true); save(); renderAll(); });
+
+  $("packExpandAll").addEventListener("click", () => { pushUndo(); state.ui.packCollapsed = {}; save(); renderAll(); });
+  $("packCollapseAll").addEventListener("click", () => {
+    pushUndo();
+    getPackCategories().forEach(c => state.ui.packCollapsed[c] = true);
+    save(); renderAll();
+  });
+
+  $("btnAutoSort").addEventListener("click", () => {
+    pushUndo();
+    state.days.forEach(day => {
+      day.items.sort((a,b) => (parseTimeToMinutes(a.time) ?? 1e9) - (parseTimeToMinutes(b.time) ?? 1e9));
+    });
+    save(); renderAll();
+  });
+
+  const todayWrap = $("todayWrap");
+  const todayTitle = $("todayTitle");
+  const todayMeta = $("todayMeta");
+  const todayItems = $("todayItems");
+  $("btnTodayMode").addEventListener("click", () => toggleTodayMode());
+  $("todayExit").addEventListener("click", () => toggleTodayMode(false));
+  $("todayPrev").addEventListener("click", () => stepToday(-1));
+  $("todayNext").addEventListener("click", () => stepToday(1));
+
+  function toggleTodayMode(force){
+    const next = (typeof force === "boolean") ? force : !state.ui.todayMode;
+    state.ui.todayMode = next;
+    if (next){
+      if (!state.ui.todayDayId) state.ui.todayDayId = state.ui.lastDayId || state.days[0]?.id || "";
+      state.ui.lastDayId = state.ui.todayDayId || state.ui.lastDayId;
+    }
+    save(false);
+    renderAll();
+  }
+  function stepToday(dir){
+    const idx = state.days.findIndex(d => d.id === (state.ui.todayDayId || ""));
+    if (idx === -1) return;
+    const next = idx + dir;
+    if (next < 0 || next >= state.days.length) return;
+    state.ui.todayDayId = state.days[next].id;
+    state.ui.lastDayId = state.ui.todayDayId;
+    save(false);
+    renderAll();
+  }
+
+  destSelectEl.addEventListener("change", () => { state.ui.lastDestId = destSelectEl.value; save(false); });
+  optTypeEl.addEventListener("change", () => { state.ui.lastOptType = optTypeEl.value; save(false); });
+  optPickEl.addEventListener("change", () => { state.ui.lastOptPick = optPickEl.value; save(false); });
+
+  daySelectEl.addEventListener("change", () => { state.ui.lastDayId = daySelectEl.value; save(false); });
+  itinDestSelectEl.addEventListener("change", () => { state.ui.lastItinDestId = itinDestSelectEl.value; save(false); renderAll(); renderOptionRef(); });
+
+  tripNameEl.addEventListener("input", () => {
+    state.tripName = tripNameEl.value.trim() || "My Trip";
+    save();
+  });
+
+  timeTemplateEl.addEventListener("change", () => {
+    if (timeTemplateEl.value) timeEl.value = timeTemplateEl.value;
+  });
+
+  $("btnAddDest").addEventListener("click", addDestination);
+  $("btnAddDay").addEventListener("click", addDay);
+
+  $("btnEditDay").addEventListener("click", () => {
+    const dayId = daySelectEl.value;
+    if (!dayId) return;
+    editDay(dayId);
+  });
+
+  function addDestination(){
+    pushUndo();
+    const n = state.destinations.length + 1;
+    const newDest = {
+      id: uid(),
+      name: `Destination ${n}`,
+      emoji:"",
+      startDate:"",
+      endDate:"",
+      collapsed:false,
+      lodgingDefaults: { address:"", check:"", cancelPolicy:"", bookBy:"" },
+      hotels:[], restaurants:[], activities:[]
+    };
+    state.destinations.push(newDest);
+    state.ui.lastDestId = newDest.id;
+    state.ui.lastItinDestId = newDest.id;
+    save(); renderAll();
+    setRightView("options");
+    openDestDialog(newDest.id);
+  }
+
+  function addDay(){
+    pushUndo();
+    const n = state.days.length + 1;
+    const newDay = { id: uid(), title:`Day ${n}`, date:"", destId:"", travelDay:false, collapsed:false, notesLoved:"", notesSkip:"", items:[] };
+    state.days.push(newDay);
+    state.ui.lastDayId = newDay.id;
+    state.ui.todayDayId = newDay.id;
+    save(); renderAll();
+    setRightView("itinerary");
+  }
+
+  $("btnAddOption").addEventListener("click", () => {
+    const destId = destSelectEl.value;
+    const d = state.destinations.find(x => x.id === destId);
+    if (!d) return;
+
+    const nm = optNameEl.value.trim();
+    if (!nm){ optNameEl.focus(); flash(optNameEl); return; }
+
+    pushUndo();
+    const listKey = optTypeEl.value;
+    const tags = parseTags(optTagsEl.value);
+    const rating = clampInt(optRatingEl.value, 1, 5);
+    const resNeeded = (optResNeededEl.value === "true");
+
+    const base = {
+      id: uid(),
+      name: nm,
+      area: optAreaEl.value.trim(),
+      link: optLinkEl.value.trim(),
+      notes: optNotesEl.value.trim(),
+      cost: parseCost(optCostEl.value),
+      selected: (optPickEl.value === "selected"),
+      tags,
+      rating,
+      pros: optProsEl.value.trim(),
+      cons: optConsEl.value.trim(),
+      reservationNeeded: resNeeded,
+
+      address: "",
+      bookBy: "",
+      check: "",
+      cancelPolicy: ""
+    };
+
+    if (listKey === "hotels"){
+      const ld = d.lodgingDefaults || {};
+      base.address = ld.address || "";
+      base.check = ld.check || "";
+      base.cancelPolicy = ld.cancelPolicy || "";
+      base.bookBy = ld.bookBy || "";
+    }
+
+    d[listKey].push(base);
+
+    state.ui.lastDestId = destId;
+    state.ui.lastOptType = listKey;
+    state.ui.lastOptPick = optPickEl.value;
+
+    optNameEl.value = "";
+    optAreaEl.value = "";
+    optLinkEl.value = "";
+    optNotesEl.value = "";
+    optCostEl.value = "";
+    optTagsEl.value = "";
+    optRatingEl.value = "";
+    optProsEl.value = "";
+    optConsEl.value = "";
+    optResNeededEl.value = "false";
+
+    save(); renderAll(); renderOptionRef();
+  });
+
+  $("btnAddItem").addEventListener("click", () => {
+    const dayId = daySelectEl.value;
+    const day = state.days.find(d => d.id === dayId);
+    if (!day) return;
+
+    const title = nameEl.value.trim();
+    if (!title){ nameEl.focus(); flash(nameEl); return; }
+
+    pushUndo();
+    const ref = optionRefEl.value || "";
+    day.destId = itinDestSelectEl.value || day.destId || "";
+
+    day.items.push({
+      id: uid(),
+      time: timeEl.value.trim(),
+      category: categoryEl.value,
+      name: title,
+      refOptionId: ref,
+      cost: parseCost(costEl.value),
+      status: statusEl.value,
+      doneStatus: "none",
+      notes: notesEl.value.trim(),
+      tags: parseTags(itinTagsEl.value),
+      bufferMin: clampInt(bufferMinEl.value, 0, 600) || 0,
+      transport: { from:"", to:"", mode:"", conf:"", depart:"", arrive:"" }
+    });
+
+    state.ui.lastDayId = dayId;
+    state.ui.todayDayId = dayId;
+    state.ui.lastItinDestId = itinDestSelectEl.value || "";
+
+    timeEl.value=""; nameEl.value=""; costEl.value=""; notesEl.value=""; optionRefEl.value=""; statusEl.value="planned";
+    itinTagsEl.value=""; bufferMinEl.value=""; timeTemplateEl.value="";
+
+    save(); renderAll();
+  });
+
+  $("btnAddPack").addEventListener("click", () => {
+    const name = packNameEl.value.trim();
+    if (!name){ packNameEl.focus(); flash(packNameEl); return; }
+
+    pushUndo();
+    state.pack.items.push({
+      id: uid(),
+      name,
+      category: packCategoryEl.value.trim(),
+      qty: parseQty(packQtyEl.value),
+      notes: packNotesEl.value.trim(),
+      done: false,
+      suggested: false
+    });
+
+    packNameEl.value = "";
+    packCategoryEl.value = "";
+    packQtyEl.value = "";
+    packNotesEl.value = "";
+
+    save(); renderAll();
+  });
+
+  $("btnApplyTemplate").addEventListener("click", () => {
+    const key = $("packTemplate").value;
+    if (!key) return;
+    const tpl = PACK_TEMPLATES[key];
+    if (!tpl) return;
+
+    pushUndo();
+    tpl.forEach(([cat, name]) => {
+      if (state.pack.items.some(it => (it.name||"").toLowerCase() === name.toLowerCase())) return;
+      state.pack.items.push({ id: uid(), name, category: cat, qty:"", notes:"", done:false, suggested:true });
+    });
+    save(); renderAll();
+  });
+
+  // UPDATED: pulls tags from destination options + itinerary, with Selected-only toggle
+  $("btnSuggestPack").addEventListener("click", () => {
+    pushUndo();
+
+    const allTags = new Set();
+
+    // 1) Destination Options tags (main source)
+    const allOptions = [];
+    state.destinations.forEach(d => {
+      ["hotels","restaurants","activities"].forEach(k => {
+        (d[k] || []).forEach(o => allOptions.push(o));
+      });
+    });
+
+    const selectedOnly = !!state.ui.packSuggestSelectedOnly;
+    let optionsToUse = allOptions;
+
+    if (selectedOnly){
+      const selected = allOptions.filter(o => !!o.selected);
+      optionsToUse = selected.length ? selected : allOptions; // fallback so it still works
+    }
+
+    optionsToUse.forEach(o => {
+      (o.tags || []).forEach(t => allTags.add(String(t).toLowerCase()));
+      if (o.reservationNeeded) allTags.add("reservation");
+
+      // lightweight keyword assist (helps even if you forget tags)
+      const blob = [o.name, o.area, o.notes, o.pros, o.cons].join(" ").toLowerCase();
+      if (blob.includes("beach")) allTags.add("beach");
+      if (blob.includes("hike") || blob.includes("trail")) allTags.add("hiking");
+      if (blob.includes("rain")) allTags.add("rain");
+      if (blob.includes("ski")) allTags.add("ski");
+      if (blob.includes("fancy") || blob.includes("michelin") || blob.includes("tasting")) allTags.add("fancy");
+    });
+
+    // 2) Itinerary tags (secondary source)
+    state.days.forEach(day => day.items.forEach(it => (it.tags || []).forEach(t => allTags.add(String(t).toLowerCase()))));
+    state.days.forEach(day => day.items.forEach(it => {
+      const c = (it.category || "").toLowerCase();
+      if (c.includes("day trip")) allTags.add("daytrip");
+      if (c.includes("museum")) allTags.add("museum");
+      if (c.includes("transport")) allTags.add("transport");
+    }));
+
+    // 3) Apply rules
+    PACK_SUGGEST_MAP.forEach(rule => {
+      if (!allTags.has(rule.tag)) return;
+      rule.items.forEach(([cat, name]) => {
+        if (state.pack.items.some(it => (it.name||"").toLowerCase() === name.toLowerCase())) return;
+        state.pack.items.push({ id: uid(), name, category: cat, qty:"", notes:"", done:false, suggested:true });
+      });
+    });
+
+    // 4) Always-add basics (if missing)
+    const general = [
+      ["Documents","Copy of passport/ID (photo)"],
+      ["Tech","Charging cables"],
+      ["Health","Pain reliever"],
+      ["Health","Band-aids"]
+    ];
+    general.forEach(([cat,name]) => {
+      if (state.pack.items.some(it => (it.name||"").toLowerCase() === name.toLowerCase())) return;
+      state.pack.items.push({ id: uid(), name, category: cat, qty:"", notes:"", done:false, suggested:true });
+    });
+
+    save(); renderAll();
+  });
+
+  const destDlg = $("destDialog");
+  const dlgDestName = $("dlgDestName");
+  const dlgDestEmoji = $("dlgDestEmoji");
+  const dlgDestStart = $("dlgDestStart");
+  const dlgDestEnd = $("dlgDestEnd");
+  const dlgLodgeAddr = $("dlgLodgeAddr");
+  const dlgLodgeCheck = $("dlgLodgeCheck");
+  const dlgLodgeCancel = $("dlgLodgeCancel");
+  const dlgLodgeBy = $("dlgLodgeBy");
+  let editingDestId = null;
+
+  $("dlgDestCancel").addEventListener("click", () => destDlg.close());
+  $("dlgDestSave").addEventListener("click", () => {
+    const d = state.destinations.find(x => x.id === editingDestId);
+    if (!d) return destDlg.close();
+
+    pushUndo();
+    d.name = dlgDestName.value.trim() || d.name;
+    d.emoji = dlgDestEmoji.value.trim();
+    d.startDate = dlgDestStart.value || "";
+    d.endDate = dlgDestEnd.value || "";
+    d.lodgingDefaults = d.lodgingDefaults || { address:"", check:"", cancelPolicy:"", bookBy:"" };
+    d.lodgingDefaults.address = dlgLodgeAddr.value.trim();
+    d.lodgingDefaults.check = dlgLodgeCheck.value.trim();
+    d.lodgingDefaults.cancelPolicy = dlgLodgeCancel.value.trim();
+    d.lodgingDefaults.bookBy = dlgLodgeBy.value || "";
+
+    destDlg.close();
+    save(); renderAll();
+  });
+
+  $("btnEditDest").addEventListener("click", () => {
+    const destId = destSelectEl.value;
+    if (!destId) return;
+    openDestDialog(destId);
+  });
+
+  function openDestDialog(destId){
+    const d = state.destinations.find(x => x.id === destId);
+    if (!d) return;
+    editingDestId = destId;
+    dlgDestName.value = d.name || "";
+    dlgDestEmoji.value = d.emoji || "";
+    dlgDestStart.value = d.startDate || "";
+    dlgDestEnd.value = d.endDate || "";
+    const ld = d.lodgingDefaults || {};
+    dlgLodgeAddr.value = ld.address || "";
+    dlgLodgeCheck.value = ld.check || "";
+    dlgLodgeCancel.value = ld.cancelPolicy || "";
+    dlgLodgeBy.value = ld.bookBy || "";
+    destDlg.showModal();
+    setTimeout(() => dlgDestName.focus(), 0);
+  }
+
+  const optDlg = $("optDialog");
+  const dlgOptAddress = $("dlgOptAddress");
+  const dlgOptBookBy = $("dlgOptBookBy");
+  const dlgOptCheck = $("dlgOptCheck");
+  const dlgOptCancel = $("dlgOptCancel");
+  $("dlgOptCancelBtn").addEventListener("click", () => optDlg.close());
+  let optCtx = null;
+  $("dlgOptSaveBtn").addEventListener("click", () => {
+    if (!optCtx) return optDlg.close();
+    const { destId, key, optId } = optCtx;
+    const d = state.destinations.find(x => x.id === destId);
+    const opt = d?.[key]?.find(o => o.id === optId);
+    if (!opt) return optDlg.close();
+
+    pushUndo();
+    opt.address = dlgOptAddress.value.trim();
+    opt.bookBy = dlgOptBookBy.value || "";
+    opt.check = dlgOptCheck.value.trim();
+    opt.cancelPolicy = dlgOptCancel.value.trim();
+    optDlg.close();
+    save(); renderAll();
+  });
+
+  function openOptDialog(destId, key, optId){
+    const d = state.destinations.find(x => x.id === destId);
+    const opt = d?.[key]?.find(o => o.id === optId);
+    if (!opt) return;
+    optCtx = { destId, key, optId };
+    dlgOptAddress.value = opt.address || "";
+    dlgOptBookBy.value = opt.bookBy || "";
+    dlgOptCheck.value = opt.check || "";
+    dlgOptCancel.value = opt.cancelPolicy || "";
+    optDlg.showModal();
+  }
+
+  const itinDlg = $("itinDialog");
+  const dlgItinTargetDay = $("dlgItinTargetDay");
+  const dlgItinAction = $("dlgItinAction");
+  const dlgTrFrom = $("dlgTrFrom");
+  const dlgTrTo = $("dlgTrTo");
+  const dlgTrMode = $("dlgTrMode");
+  const dlgTrConf = $("dlgTrConf");
+  const dlgTrDepart = $("dlgTrDepart");
+  const dlgTrArrive = $("dlgTrArrive");
+  $("dlgItinCancel").addEventListener("click", () => itinDlg.close());
+  let itinCtx = null;
+
+  $("dlgItinSave").addEventListener("click", () => {
+    if (!itinCtx) return itinDlg.close();
+    const { dayId, itemId } = itinCtx;
+    const day = state.days.find(d => d.id === dayId);
+    const it = day?.items.find(x => x.id === itemId);
+    if (!day || !it) return itinDlg.close();
+
+    pushUndo();
+
+    it.transport = it.transport || { from:"", to:"", mode:"", conf:"", depart:"", arrive:"" };
+    it.transport.from = dlgTrFrom.value.trim();
+    it.transport.to = dlgTrTo.value.trim();
+    it.transport.mode = dlgTrMode.value.trim();
+    it.transport.conf = dlgTrConf.value.trim();
+    it.transport.depart = dlgTrDepart.value.trim();
+    it.transport.arrive = dlgTrArrive.value.trim();
+
+    const targetId = dlgItinTargetDay.value;
+    const action = dlgItinAction.value;
+
+    if (targetId && targetId !== dayId){
+      const targetDay = state.days.find(d => d.id === targetId);
+      if (targetDay){
+        if (action === "duplicate"){
+          targetDay.items.push({ ...deepClone(it), id: uid() });
+        } else {
+          targetDay.items.push(it);
+          day.items = day.items.filter(x => x.id !== itemId);
+        }
+      }
+    }
+
+    itinDlg.close();
+    save(); renderAll();
+  });
+
+  function openItinDialog(dayId, itemId){
+    const day = state.days.find(d => d.id === dayId);
+    const it = day?.items.find(x => x.id === itemId);
+    if (!day || !it) return;
+    itinCtx = { dayId, itemId };
+
+    dlgItinTargetDay.innerHTML = `<option value="">— Choose a day —</option>`;
+    state.days.forEach((d, idx) => {
+      const opt = document.createElement("option");
+      opt.value = d.id;
+      opt.textContent = `${d.title || `Day ${idx+1}`}${d.date ? ` (${d.date})` : ""}`;
+      dlgItinTargetDay.appendChild(opt);
+    });
+    dlgItinTargetDay.value = "";
+    dlgItinAction.value = "duplicate";
+
+    const tr = it.transport || {};
+    dlgTrFrom.value = tr.from || "";
+    dlgTrTo.value = tr.to || "";
+    dlgTrMode.value = tr.mode || "";
+    dlgTrConf.value = tr.conf || "";
+    dlgTrDepart.value = tr.depart || "";
+    dlgTrArrive.value = tr.arrive || "";
+
+    itinDlg.showModal();
+  }
+
+  let editingPackId = null;
+  const dlgPack = document.createElement("dialog");
+  dlgPack.innerHTML = `
+    <div class="dlgTitle">Edit packing item</div>
+    <label>Item</label>
+    <input id="pN" />
+    <div class="row">
+      <div><label>Category</label><input id="pC" /></div>
+      <div><label>Qty</label><input id="pQ" inputmode="numeric" /></div>
+    </div>
+    <div class="dlgActions">
+      <button id="pCancel">Cancel</button>
+      <button class="primary" id="pSave">Save</button>
+    </div>
+  `;
+  document.body.appendChild(dlgPack);
+  dlgPack.querySelector("#pCancel").addEventListener("click", () => dlgPack.close());
+  dlgPack.querySelector("#pSave").addEventListener("click", () => {
+    const it = state.pack.items.find(x => x.id === editingPackId);
+    if (!it) return dlgPack.close();
+    pushUndo();
+    it.name = dlgPack.querySelector("#pN").value.trim() || it.name;
+    it.category = dlgPack.querySelector("#pC").value.trim();
+    it.qty = parseQty(dlgPack.querySelector("#pQ").value);
+    dlgPack.close();
+    save(); renderAll();
+  });
+  function openEditPack(id){
+    const it = state.pack.items.find(x => x.id === id);
+    if (!it) return;
+    editingPackId = id;
+    dlgPack.querySelector("#pN").value = it.name || "";
+    dlgPack.querySelector("#pC").value = it.category || "";
+    dlgPack.querySelector("#pQ").value = it.qty || "";
+    dlgPack.showModal();
+  }
+
+  tripNameEl.value = state.tripName || "";
+  setLeftTab(state.ui.leftTab || "opt");
+  setRightView(state.ui.rightView || "options");
+  renderAll();
+
+  function save(updateHint=true){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (updateHint) $("saveHint").textContent = "Autosave: on";
+    }catch(e){
+      $("saveHint").textContent = "Autosave: failed (storage blocked)";
+    }
+  }
+  function load(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      return normalize(JSON.parse(raw));
+    }catch(e){ return null; }
+  }
+
+  function normalize(data){
+    const base = defaultState();
+    const out = {
+      tripName: (data.tripName || base.tripName).toString(),
+      ui: { ...base.ui, ...(data.ui || {}) },
+      destinations: Array.isArray(data.destinations) ? data.destinations.map(d => ({
+        id: d.id || uid(),
+        name: (d.name || "Destination").toString(),
+        emoji: (d.emoji || "").toString(),
+        startDate: (d.startDate || "").toString(),
+        endDate: (d.endDate || "").toString(),
+        collapsed: !!d.collapsed,
+        lodgingDefaults: {
+          address: (d.lodgingDefaults?.address || "").toString(),
+          check: (d.lodgingDefaults?.check || "").toString(),
+          cancelPolicy: (d.lodgingDefaults?.cancelPolicy || "").toString(),
+          bookBy: (d.lodgingDefaults?.bookBy || "").toString()
+        },
+        hotels: normalizeOpts(d.hotels),
+        restaurants: normalizeOpts(d.restaurants),
+        activities: normalizeOpts(d.activities)
+      })) : base.destinations,
+      days: Array.isArray(data.days) ? data.days.map(d => ({
+        id: d.id || uid(),
+        title: (d.title || "Day").toString(),
+        date: (d.date || "").toString(),
+        destId: (d.destId || "").toString(),
+        travelDay: !!d.travelDay,
+        collapsed: !!d.collapsed,
+        notesLoved: (d.notesLoved || "").toString(),
+        notesSkip: (d.notesSkip || "").toString(),
+        items: Array.isArray(d.items) ? d.items.map(it => ({
+          id: it.id || uid(),
+          time: (it.time || "").toString(),
+          category: (it.category || "Note").toString(),
+          name: (it.name || "Untitled").toString(),
+          refOptionId: (it.refOptionId || "").toString(),
+          cost: (it.cost === null || it.cost === undefined) ? null : Number(it.cost),
+          status: (it.status === "booked") ? "booked" : "planned",
+          doneStatus: (it.doneStatus === "done" || it.doneStatus === "skipped") ? it.doneStatus : "none",
+          notes: (it.notes || "").toString(),
+          tags: Array.isArray(it.tags) ? it.tags.map(x => String(x).toLowerCase()).filter(Boolean) : [],
+          bufferMin: clampInt(it.bufferMin, 0, 600) || 0,
+          transport: {
+            from: (it.transport?.from || "").toString(),
+            to: (it.transport?.to || "").toString(),
+            mode: (it.transport?.mode || "").toString(),
+            conf: (it.transport?.conf || "").toString(),
+            depart: (it.transport?.depart || "").toString(),
+            arrive: (it.transport?.arrive || "").toString()
+          }
+        })) : []
+      })) : base.days,
+      pack: {
+        items: Array.isArray(data.pack?.items) ? data.pack.items.map(it => ({
+          id: it.id || uid(),
+          name: (it.name || "").toString(),
+          category: (it.category || "").toString(),
+          qty: (it.qty || "").toString(),
+          notes: (it.notes || "").toString(),
+          done: !!it.done,
+          suggested: !!it.suggested
+        })) : []
+      }
+    };
+
+    if (!["options","itinerary","pack"].includes(out.ui.rightView)) out.ui.rightView = "options";
+    if (!["opt","itin","pack"].includes(out.ui.leftTab)) out.ui.leftTab = "opt";
+    if (!out.ui.packCollapsed || typeof out.ui.packCollapsed !== "object") out.ui.packCollapsed = {};
+    if (!Array.isArray(out.ui.undo)) out.ui.undo = [];
+
+    if (!out.destinations.length) out.destinations = base.destinations;
+    if (!out.days.length) out.days = base.days;
+
+    if (out.ui.lastDestId && !out.destinations.some(d => d.id === out.ui.lastDestId)) out.ui.lastDestId = "";
+    if (out.ui.lastDayId && !out.days.some(d => d.id === out.ui.lastDayId)) out.ui.lastDayId = "";
+    if (out.ui.lastItinDestId && !out.destinations.some(d => d.id === out.ui.lastItinDestId)) out.ui.lastItinDestId = "";
+    if (out.ui.todayDayId && !out.days.some(d => d.id === out.ui.todayDayId)) out.ui.todayDayId = "";
+
+    out.ui.packSuggestSelectedOnly = (out.ui.packSuggestSelectedOnly !== undefined) ? !!out.ui.packSuggestSelectedOnly : true;
+
+    return out;
+
+    function normalizeOpts(arr){
+      return Array.isArray(arr) ? arr.map(o => ({
+        id: o.id || uid(),
+        name: (o.name || "Option").toString(),
+        area: (o.area || "").toString(),
+        link: (o.link || "").toString(),
+        notes: (o.notes || "").toString(),
+        cost: (o.cost === null || o.cost === undefined) ? null : Number(o.cost),
+        selected: !!o.selected,
+        tags: Array.isArray(o.tags) ? o.tags.map(x => String(x).toLowerCase()).filter(Boolean) : [],
+        rating: clampInt(o.rating, 1, 5) || null,
+        pros: (o.pros || "").toString(),
+        cons: (o.cons || "").toString(),
+        reservationNeeded: !!o.reservationNeeded,
+        address: (o.address || "").toString(),
+        bookBy: (o.bookBy || "").toString(),
+        check: (o.check || "").toString(),
+        cancelPolicy: (o.cancelPolicy || "").toString()
+      })) : [];
+    }
+  }
+
+  function renderAll(){
+    renderDestSelects();
+    renderOptionRef();
+    renderFilterMenus();
+    renderDestinations();
+    renderDays();
+    renderDayStrip();
+    renderTodayMode();
+    rebuildPackCatFilter();
+    renderPack();
+    document.title = `${state.tripName || "Trip"} — Trip Planner`;
+  }
+
+  function renderDestSelects(){
+    destSelectEl.innerHTML = "";
+    itinDestSelectEl.innerHTML = "";
+
+    state.destinations.forEach((d) => {
+      const label = `${d.emoji ? d.emoji + " " : ""}${d.name}`;
+      const o1 = document.createElement("option");
+      o1.value = d.id; o1.textContent = label;
+      destSelectEl.appendChild(o1);
+
+      const o2 = document.createElement("option");
+      o2.value = d.id; o2.textContent = label;
+      itinDestSelectEl.appendChild(o2);
+    });
+
+    const fallbackDest = state.destinations[0]?.id || "";
+    destSelectEl.value = state.ui.lastDestId || fallbackDest;
+    itinDestSelectEl.value = state.ui.lastItinDestId || (state.ui.lastDestId || fallbackDest);
+
+    optTypeEl.value = state.ui.lastOptType || "hotels";
+    optPickEl.value = state.ui.lastOptPick || "alt";
+
+    daySelectEl.innerHTML = "";
+    state.days.forEach((d, idx) => {
+      const opt = document.createElement("option");
+      opt.value = d.id;
+      const destName = getDestLabel(d.destId);
+      opt.textContent = [d.title || `Day ${idx+1}`, d.date ? `(${d.date})` : "", destName ? `— ${destName}` : ""].filter(Boolean).join(" ");
+      daySelectEl.appendChild(opt);
+    });
+
+    const fallbackDay = state.days[0]?.id || "";
+    daySelectEl.value = state.ui.lastDayId || fallbackDay;
+  }
+
+  function renderFilterMenus(){
+    optDestFilterEl.innerHTML = `<option value="">All destinations</option>`;
+    state.destinations.forEach(d => {
+      const o = document.createElement("option");
+      o.value = d.id;
+      o.textContent = `${d.emoji ? d.emoji+" " : ""}${d.name}`;
+      optDestFilterEl.appendChild(o);
+    });
+    optDestFilterEl.value = state.ui.optDestFilter || "";
+
+    const tags = new Set();
+    state.destinations.forEach(d => ["hotels","restaurants","activities"].forEach(k => d[k].forEach(o => (o.tags||[]).forEach(t => tags.add(t)))));
+    const tagArr = [...tags].sort((a,b)=>a.localeCompare(b));
+    optTagFilterEl.innerHTML = `<option value="">All tags</option>`;
+    tagArr.forEach(t => {
+      const o = document.createElement("option");
+      o.value = t;
+      o.textContent = t;
+      optTagFilterEl.appendChild(o);
+    });
+    optTagFilterEl.value = state.ui.optTagFilter || "";
+  }
+
+  function renderOptionRef(){
+    optionRefEl.innerHTML = `<option value="">— No linked option —</option>`;
+    const destId = itinDestSelectEl.value || "";
+    const pools = getAllOptions(destId);
+    pools.forEach(({ id, label }) => {
+      const o = document.createElement("option");
+      o.value = id;
+      o.textContent = label;
+      optionRefEl.appendChild(o);
+    });
+  }
+
+  function renderDayStrip(){
+    dayStripEl.innerHTML = "";
+    if (state.ui.rightView !== "itinerary") return;
+
+    const activeDayId = state.ui.lastDayId || state.days[0]?.id || "";
+    state.days.forEach((day, idx) => {
+      const d = state.destinations.find(x => x.id === day.destId);
+      const label = `${day.title || `Day ${idx+1}`} · ${d ? `${d.emoji ? d.emoji+" " : ""}${d.name}` : "No destination"}`;
+      const chip = document.createElement("div");
+      chip.className = "dayChip" + (day.id === activeDayId ? " active" : "");
+      chip.textContent = label;
+      chip.addEventListener("click", () => {
+        state.ui.lastDayId = day.id;
+        if (state.ui.todayMode) state.ui.todayDayId = day.id;
+        save(false);
+        renderAll();
+        if (!state.ui.todayMode){
+          const el = document.querySelector(`[data-day-id="${day.id}"]`);
+          if (el) el.scrollIntoView({ behavior:"smooth", block:"start" });
+        }
+      });
+      dayStripEl.appendChild(chip);
+    });
+  }
+
+  function renderTodayMode(){
+    if (state.ui.rightView !== "itinerary"){
+      todayWrap.classList.add("hidden");
+      return;
+    }
+    todayWrap.classList.toggle("hidden", !state.ui.todayMode);
+
+    if (!state.ui.todayMode) return;
+
+    const dayId = state.ui.todayDayId || state.ui.lastDayId || state.days[0]?.id || "";
+    const day = state.days.find(d => d.id === dayId) || state.days[0];
+    if (!day) return;
+
+    const idx = state.days.findIndex(d => d.id === day.id);
+    const dest = state.destinations.find(d => d.id === day.destId);
+    todayTitle.textContent = `${day.title || `Day ${idx+1}`}${day.travelDay ? " ✈️" : ""}`;
+    todayMeta.textContent = `${day.date ? day.date+" · " : ""}${dest ? (dest.emoji ? dest.emoji+" " : "")+dest.name : "No destination"}`;
+
+    todayItems.innerHTML = "";
+    const list = document.createElement("div");
+    list.className = "list";
+
+    const items = applyItineraryFilters(day.items, true);
+    if (!items.length){
+      const empty = document.createElement("div");
+      empty.className = "mutedSmall";
+      empty.textContent = "No items match your current search/filter.";
+      todayItems.appendChild(empty);
+    } else {
+      items.forEach(it => {
+        const row = document.createElement("div");
+        row.className = "opt " + colorClassForItinCategory(it.category);
+        row.style.gridTemplateColumns = "1fr auto";
+        row.style.alignItems = "center";
+
+        const left = document.createElement("div");
+        left.innerHTML = `
+          <div class="optTop">
+            <span class="cat">${escapeHtml(it.category||"Note")}</span>
+            <span class="name">${escapeHtml(it.time ? it.time+" — " : "")}${escapeHtml(it.name)}</span>
+            ${it.status==="booked" ? `<span class="pillSel">Booked</span>` : `<span class="pillAlt">Planned</span>`}
+            ${it.doneStatus==="done" ? `<span class="pillSel">Done</span>` : it.doneStatus==="skipped" ? `<span class="pillAlt">Skipped</span>` : ``}
+          </div>
+        `;
+
+        const right = document.createElement("div");
+        right.className = "destActions";
+        right.appendChild(mkBtn("Done", "small good", () => setDone(day.id, it.id, "done")));
+        right.appendChild(mkBtn("Skip", "small", () => setDone(day.id, it.id, "skipped")));
+        right.appendChild(mkBtn("Undo", "small", () => setDone(day.id, it.id, "none")));
+        right.appendChild(mkBtn("Tools", "small", () => openItinDialog(day.id, it.id)));
+
+        row.appendChild(left);
+        row.appendChild(right);
+        list.appendChild(row);
+      });
+      todayItems.appendChild(list);
+    }
+  }
+
+  function renderDestinations(){
+    destinationsWrap.innerHTML = "";
+
+    const query = (state.ui.globalSearch || "").trim().toLowerCase();
+    const showSelectedOnly = (state.ui.globalFilter === "selected");
+    const destFilter = state.ui.optDestFilter || "";
+    const tagFilter = (state.ui.optTagFilter || "").trim().toLowerCase();
+
+    state.destinations.forEach((d) => {
+      if (destFilter && d.id !== destFilter) return;
+
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.marginBottom = "14px";
+
+      const header = document.createElement("div");
+      header.className = "destHeader";
+
+      const left = document.createElement("div");
+      const title = document.createElement("div");
+      title.className = "destTitle";
+      title.textContent = `${d.emoji ? d.emoji + " " : ""}${d.name}`;
+
+      const meta = document.createElement("div");
+      meta.className = "destMeta";
+      const range = formatDateRange(d.startDate, d.endDate);
+      meta.innerHTML = `
+        <span class="badge">${d.hotels.length} hotel option${d.hotels.length===1?"":"s"}</span>
+        <span class="badge">${d.restaurants.length} restaurant option${d.restaurants.length===1?"":"s"}</span>
+        <span class="badge">${d.activities.length} activity option${d.activities.length===1?"":"s"}</span>
+        ${range ? `<span class="badge">${escapeHtml(range)}</span>` : ""}
+      `;
+      left.appendChild(title);
+      left.appendChild(meta);
+
+      const actions = document.createElement("div");
+      actions.className = "destActions";
+      actions.appendChild(mkBtn("Edit", "small", () => openDestDialog(d.id)));
+      actions.appendChild(mkBtn(d.collapsed ? "Expand" : "Collapse", "small", () => { pushUndo(); d.collapsed = !d.collapsed; save(); renderAll(); }));
+      actions.appendChild(mkBtn("Delete", "small danger", () => deleteDest(d.id)));
+
+      header.appendChild(left);
+      header.appendChild(actions);
+
+      const body = document.createElement("div");
+      body.classList.toggle("hidden", d.collapsed);
+
+      body.appendChild(renderPool(d, "Hotels", "hotels", query, showSelectedOnly, tagFilter));
+      body.appendChild(renderPool(d, "Restaurants", "restaurants", query, showSelectedOnly, tagFilter));
+      body.appendChild(renderPool(d, "Activities", "activities", query, showSelectedOnly, tagFilter));
+
+      card.appendChild(header);
+      card.appendChild(body);
+
+      const anyShown = body.querySelectorAll(".opt").length > 0 || (!query && !showSelectedOnly && !tagFilter);
+      if ((query || showSelectedOnly || tagFilter) && !anyShown) return;
+
+      destinationsWrap.appendChild(card);
+    });
+  }
+
+  function renderPool(dest, label, key, query, selectedOnly, tagFilter){
+    const wrap = document.createElement("div");
+    const selectedCount = dest[key].filter(o => o.selected).length;
+
+    const t = document.createElement("div");
+    t.className = "sectionTitle";
+    t.innerHTML = `<span><b>${label}</b></span><span class="badge">Selected: ${selectedCount}</span>`;
+    wrap.appendChild(t);
+
+    const list = document.createElement("div");
+    list.className = "list";
+
+    let options = dest[key];
+
+    if (selectedOnly) options = options.filter(o => o.selected);
+    if (tagFilter) options = options.filter(o => (o.tags||[]).some(t => t === tagFilter));
+    if (query){
+      options = options.filter(o => {
+        const blob = [
+          o.name,o.area,o.notes,o.link,o.pros,o.cons,
+          (o.tags||[]).join(","),
+          o.address,o.cancelPolicy,o.check,o.bookBy,
+          String(o.rating||""),
+          o.reservationNeeded ? "reservation" : ""
+        ].join(" ").toLowerCase();
+        return blob.includes(query);
+      });
+    }
+
+    if (!options.length){
+      const empty = document.createElement("div");
+      empty.className = "mutedSmall";
+      empty.textContent = "No matching options.";
+      list.appendChild(empty);
+      wrap.appendChild(list);
+      wrap.appendChild(document.createElement("div")).className="hr";
+      return wrap;
+    }
+
+    options.forEach(opt => {
+      const el = document.createElement("div");
+      el.className = "opt " + colorClassForOptionKey(key);
+
+      const left = document.createElement("div");
+      const pill = opt.selected ? `<span class="pillSel">Selected</span>` : `<span class="pillAlt">Alternative</span>`;
+      const costTxt = Number.isFinite(opt.cost) ? money(opt.cost) : "";
+      const ratingTxt = opt.rating ? `⭐ ${opt.rating}/5` : "";
+      const resTxt = opt.reservationNeeded ? `📌 Reservation` : "";
+      left.innerHTML = `
+        <div class="optTop">
+          <span class="name">${escapeHtml(opt.name)}</span>
+          ${pill}
+          ${ratingTxt ? `<span class="badge">${escapeHtml(ratingTxt)}</span>` : ""}
+          ${resTxt ? `<span class="badge warn">${escapeHtml(resTxt)}</span>` : ""}
+        </div>
+        <div class="mini">
+          ${opt.area ? `<span>📍 ${escapeHtml(opt.area)}</span>` : ""}
+          ${costTxt ? `<span>💵 ${escapeHtml(costTxt)}</span>` : ""}
+          ${opt.link ? `<span>🔗 <a class="link" href="${escapeAttr(opt.link)}" target="_blank" rel="noopener">Link</a></span>` : ""}
+          ${opt.bookBy ? `<span>⏳ Book by ${escapeHtml(opt.bookBy)}</span>` : ""}
+        </div>
+      `;
+
+      const chips = document.createElement("div");
+      chips.className = "chipRow";
+      (opt.tags||[]).slice(0,10).forEach(t => {
+        const c = document.createElement("span");
+        c.className = "chip";
+        c.textContent = t;
+        chips.appendChild(c);
+      });
+      left.appendChild(chips);
+
+      const pc = document.createElement("div");
+      pc.className = "mini";
+      pc.innerHTML = `
+        <span>✅ ${escapeHtml(opt.pros || "")}</span>
+        <span>⚠️ ${escapeHtml(opt.cons || "")}</span>
+      `;
+      left.appendChild(pc);
+
+      const notes = document.createElement("div");
+      notes.className = "inlineEdit";
+      notes.contentEditable = "true";
+      notes.textContent = opt.notes || "";
+      notes.addEventListener("blur", () => { opt.notes = notes.textContent.trim(); save(false); });
+
+      const hint = document.createElement("div");
+      hint.className = "inlineHint";
+      hint.textContent = "Notes are inline editable (autosaves).";
+
+      left.appendChild(notes);
+      left.appendChild(hint);
+
+      const right = document.createElement("div");
+      right.style.display = "flex";
+      right.style.gap = "8px";
+      right.style.flexWrap = "wrap";
+      right.style.justifyContent = "flex-end";
+
+      right.appendChild(mkBtn(opt.selected ? "Unselect" : "Select", "small good", () => { pushUndo(); opt.selected = !opt.selected; save(); renderAll(); }));
+      right.appendChild(mkBtn("Details", "small", () => openOptDialog(dest.id, key, opt.id)));
+      right.appendChild(mkBtn("Copy", "small", () => { pushUndo(); dest[key].push({ ...deepClone(opt), id: uid(), selected:false }); save(); renderAll(); }));
+      right.appendChild(mkBtn("Delete", "small danger", () => deleteOption(dest.id, key, opt.id)));
+
+      el.appendChild(left);
+      el.appendChild(right);
+      list.appendChild(el);
+    });
+
+    wrap.appendChild(list);
+    wrap.appendChild(document.createElement("div")).className="hr";
+    return wrap;
+  }
+
+  function renderDays(){
+    daysWrap.innerHTML = "";
+    if (state.ui.todayMode) return;
+
+    state.days.forEach((day, dayIndex) => {
+      const dayEl = document.createElement("div");
+      dayEl.className = "day";
+      dayEl.dataset.dayId = day.id;
+
+      const header = document.createElement("div");
+      header.className = "dayHeader";
+
+      const left = document.createElement("div");
+      const title = document.createElement("div");
+      title.className = "dayTitle";
+      title.textContent = day.title || `Day ${dayIndex+1}`;
+
+      const meta = document.createElement("div");
+      meta.className = "dayMeta";
+
+      const dest = state.destinations.find(d => d.id === day.destId);
+      const destLabel = dest ? `${dest.emoji ? dest.emoji+" " : ""}${dest.name}` : "";
+      const warnings = computeDayWarnings(day);
+      const totals = computeDayTotals(day);
+      const totalTxt = totals.total !== null ? `Total: ${money(totals.total)}` : "Total: —";
+      const bookedTxt = totals.booked !== null ? `Booked: ${money(totals.booked)}` : "Booked: —";
+
+      meta.innerHTML = `
+        <span class="badge">${day.date ? escapeHtml(day.date) : "No date"}</span>
+        <span class="badge">${destLabel || "No destination"}</span>
+        <span class="badge">${day.items.length} item${day.items.length===1?"":"s"}</span>
+        <span class="badge">${escapeHtml(totalTxt)}</span>
+        <span class="badge">${escapeHtml(bookedTxt)}</span>
+        ${day.travelDay ? `<span class="badge good">✈️ Travel day</span>` : ``}
+        ${warnings.length ? `<span class="badge warn">⚠ ${warnings.length} warning${warnings.length===1?"":"s"}</span>` : ``}
+      `;
+
+      left.appendChild(title);
+      left.appendChild(meta);
+
+      const actions = document.createElement("div");
+      actions.className = "destActions";
+      actions.appendChild(mkBtn(day.travelDay ? "Unset travel day" : "✈️ Travel day", "small", () => { pushUndo(); day.travelDay = !day.travelDay; save(); renderAll(); }));
+      actions.appendChild(mkBtn("Edit day", "small", () => editDay(day.id)));
+      actions.appendChild(mkBtn("Duplicate", "small", () => duplicateDay(day.id)));
+      actions.appendChild(mkBtn("Delete", "small danger", () => deleteDay(day.id)));
+
+      header.appendChild(left);
+      header.appendChild(actions);
+
+      header.addEventListener("click", (e) => {
+        if (e.target.closest("button")) return;
+        pushUndo();
+        day.collapsed = !day.collapsed;
+        save(); renderAll();
+      });
+
+      const itemsWrap = document.createElement("div");
+      itemsWrap.className = "items";
+      if (day.collapsed) itemsWrap.classList.add("hidden");
+
+      itemsWrap.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        const dragging = itemsWrap.querySelector(".item.dragging");
+        if (!dragging) return;
+        const after = getDragAfterElement(itemsWrap, e.clientY);
+        if (after == null) itemsWrap.appendChild(dragging);
+        else itemsWrap.insertBefore(dragging, after);
+      });
+      itemsWrap.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const ids = [...itemsWrap.querySelectorAll(".item")].map(el => el.dataset.itemId);
+        pushUndo();
+        day.items.sort((a,b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+        save();
+      });
+
+      const itemWarningsById = computeItemWarnings(day);
+      const visibleItems = applyItineraryFilters(day.items);
+
+      if (!visibleItems.length && ((state.ui.globalSearch||"").trim() || state.ui.globalFilter !== "all")){
+        const empty = document.createElement("div");
+        empty.className = "mutedSmall";
+        empty.textContent = "No items match your current search/filter for this day.";
+        itemsWrap.appendChild(empty);
+      }
+
+      visibleItems.forEach((it) => {
+        const itemEl = document.createElement("div");
+        itemEl.className = "item " + colorClassForItinCategory(it.category);
+        itemEl.draggable = true;
+        itemEl.dataset.itemId = it.id;
+
+        itemEl.addEventListener("dragstart", () => itemEl.classList.add("dragging"));
+        itemEl.addEventListener("dragend", () => itemEl.classList.remove("dragging"));
+
+        const timeCol = document.createElement("div");
+        const timeBox = document.createElement("div");
+        timeBox.className = "timeBox";
+        timeBox.textContent = it.time || "—";
+        timeCol.appendChild(timeBox);
+
+        const timeEdit = document.createElement("input");
+        timeEdit.className = "timeInline";
+        timeEdit.value = it.time || "";
+        timeEdit.placeholder = "Edit time";
+        timeEdit.addEventListener("change", () => {
+          pushUndo();
+          it.time = timeEdit.value.trim();
+          save(false);
+          renderAll();
+        });
+        timeCol.appendChild(timeEdit);
+
+        const buffer = document.createElement("input");
+        buffer.className = "timeInline";
+        buffer.value = it.bufferMin ? String(it.bufferMin) : "";
+        buffer.placeholder = "Buffer min";
+        buffer.addEventListener("change", () => {
+          pushUndo();
+          it.bufferMin = clampInt(buffer.value, 0, 600) || 0;
+          save(false);
+          renderAll();
+        });
+        timeCol.appendChild(buffer);
+
+        const main = document.createElement("div");
+        const refLabel = it.refOptionId ? getOptionLabel(it.refOptionId) : "";
+        const refPill = refLabel ? `<span class="pillRef">Option: ${escapeHtml(refLabel)}</span>` : "";
+        const statusPill = it.status === "booked" ? `<span class="pillSel">Booked</span>` : `<span class="pillAlt">Planned</span>`;
+        const donePill = it.doneStatus === "done"
+          ? `<span class="pillSel">Done</span>`
+          : it.doneStatus === "skipped"
+            ? `<span class="pillAlt">Skipped</span>` : "";
+
+        const dim = day.travelDay && !isEssentialOnTravelDay(it.category);
+        if (dim) itemEl.classList.add("dimOnTravel");
+
+        main.innerHTML = `
+          <div class="optTop">
+            <span class="cat">${escapeHtml(it.category || "Note")}</span>
+            <span class="name">${escapeHtml(it.name || "Untitled")}</span>
+            ${statusPill}
+            ${donePill}
+            ${refPill}
+            ${it.bufferMin ? `<span class="badge">+${it.bufferMin}m buffer</span>` : ``}
+          </div>
+          <div class="mini">
+            <span>💵 <span class="inlineEdit" data-cost style="display:inline-block; padding:6px 8px; margin-top:6px; min-width:90px;">${escapeHtml(Number.isFinite(it.cost) ? String(it.cost) : "")}</span></span>
+          </div>
+        `;
+
+        const costSpan = main.querySelector("[data-cost]");
+        costSpan.contentEditable = "true";
+        costSpan.addEventListener("blur", () => {
+          pushUndo();
+          it.cost = parseCost(costSpan.textContent);
+          save(false);
+          renderAll();
+        });
+
+        const chipRow = document.createElement("div");
+        chipRow.className = "chipRow";
+        (it.tags||[]).slice(0,10).forEach(t => {
+          const c = document.createElement("span");
+          c.className = "chip";
+          c.textContent = t;
+          chipRow.appendChild(c);
+        });
+        main.appendChild(chipRow);
+
+        const notes = document.createElement("div");
+        notes.className = "inlineEdit";
+        notes.contentEditable = "true";
+        notes.textContent = it.notes || "";
+        notes.addEventListener("blur", () => { pushUndo(); it.notes = notes.textContent.trim(); save(false); });
+
+        const notesHint = document.createElement("div");
+        notesHint.className = "inlineHint";
+        notesHint.textContent = "Click notes/time/cost/buffer to edit. Autosaves.";
+        main.appendChild(notes);
+        main.appendChild(notesHint);
+
+        const tr = it.transport || {};
+        const trHas = [tr.from,tr.to,tr.mode,tr.conf,tr.depart,tr.arrive].some(Boolean);
+        if (trHas){
+          const trBox = document.createElement("div");
+          trBox.className = "mini";
+          trBox.style.marginTop = "8px";
+          trBox.innerHTML = `
+            <span>🚆 ${escapeHtml(tr.mode||"Transport")}</span>
+            ${tr.from ? `<span>${escapeHtml(tr.from)}</span>` : ""}
+            ${tr.to ? `<span>→ ${escapeHtml(tr.to)}</span>` : ""}
+            ${tr.depart ? `<span>Dep ${escapeHtml(tr.depart)}</span>` : ""}
+            ${tr.arrive ? `<span>Arr ${escapeHtml(tr.arrive)}</span>` : ""}
+            ${tr.conf ? `<span>Conf ${escapeHtml(tr.conf)}</span>` : ""}
+          `;
+          main.appendChild(trBox);
+        }
+
+        const right = document.createElement("div");
+        right.className = "itemRight";
+
+        const btns = document.createElement("div");
+        btns.style.display = "flex";
+        btns.style.gap = "8px";
+        btns.style.flexWrap = "wrap";
+        btns.style.justifyContent = "flex-end";
+
+        btns.appendChild(mkBtn(it.status === "booked" ? "Unbook" : "Book", "small good", () => { pushUndo(); it.status = (it.status==="booked")?"planned":"booked"; save(); renderAll(); }));
+        btns.appendChild(mkBtn("Done", "small good", () => setDone(day.id, it.id, "done")));
+        btns.appendChild(mkBtn("Skip", "small", () => setDone(day.id, it.id, "skipped")));
+        btns.appendChild(mkBtn("Tools", "small", () => openItinDialog(day.id, it.id)));
+        btns.appendChild(mkBtn("Copy", "small", () => { pushUndo(); day.items.push({ ...deepClone(it), id: uid(), status:"planned", doneStatus:"none" }); save(); renderAll(); }));
+        btns.appendChild(mkBtn("Delete", "small danger", () => deleteItem(day.id, it.id)));
+
+        right.appendChild(btns);
+
+        const w = itemWarningsById.get(it.id) || [];
+        if (w.length){
+          const wBox = document.createElement("div");
+          wBox.className = "warnText";
+          wBox.textContent = "⚠ " + w.join(" • ");
+          right.appendChild(wBox);
+        }
+
+        itemEl.appendChild(timeCol);
+        itemEl.appendChild(main);
+        itemEl.appendChild(right);
+
+        itemsWrap.appendChild(itemEl);
+      });
+
+      const dayNotes = document.createElement("div");
+      dayNotes.className = "card";
+      dayNotes.style.margin = "10px 0 0";
+      dayNotes.style.padding = "12px";
+      dayNotes.innerHTML = `
+        <div class="sectionTitle"><span><b>Quick notes</b></span><span class="badge">Post-trip recap</span></div>
+        <div class="grid2">
+          <div>
+            <div class="mutedSmall">What we loved</div>
+            <div class="inlineEdit" contenteditable="true" data-dn="loved">${escapeHtml(day.notesLoved || "")}</div>
+          </div>
+          <div>
+            <div class="mutedSmall">What we’d skip next time</div>
+            <div class="inlineEdit" contenteditable="true" data-dn="skip">${escapeHtml(day.notesSkip || "")}</div>
+          </div>
+        </div>
+      `;
+      const loved = dayNotes.querySelector('[data-dn="loved"]');
+      const skip = dayNotes.querySelector('[data-dn="skip"]');
+      loved.addEventListener("blur", () => { day.notesLoved = loved.textContent.trim(); save(false); });
+      skip.addEventListener("blur", () => { day.notesSkip = skip.textContent.trim(); save(false); });
+
+      itemsWrap.appendChild(dayNotes);
+
+      dayEl.appendChild(header);
+      dayEl.appendChild(itemsWrap);
+      daysWrap.appendChild(dayEl);
+    });
+  }
+
+  function renderPack(){
+    packWrap.innerHTML = "";
+
+    const items = state.pack.items || [];
+    if (!items.length){
+      const empty = document.createElement("div");
+      empty.className = "mutedSmall";
+      empty.textContent = "Nothing yet — add items from the left panel (To Pack).";
+      packWrap.appendChild(empty);
+      return;
+    }
+
+    const query = (state.ui.globalSearch || "").trim().toLowerCase();
+    const filter = state.ui.globalFilter || "all";
+    const catFilter = state.ui.packCatFilter || "";
+
+    const groups = new Map();
+    items.forEach(it => {
+      const cat = (it.category || "").trim() || "Uncategorized";
+      if (catFilter && cat !== catFilter) return;
+
+      if (filter === "pack_done" && !it.done) return;
+      if (filter === "pack_todo" && it.done) return;
+
+      if (query){
+        const blob = [it.name,it.category,it.notes,it.qty,it.suggested ? "suggested":""].join(" ").toLowerCase();
+        if (!blob.includes(query)) return;
+      }
+
+      if (!groups.has(cat)) groups.set(cat, []);
+      groups.get(cat).push(it);
+    });
+
+    if (!groups.size){
+      const empty = document.createElement("div");
+      empty.className = "mutedSmall";
+      empty.textContent = "No packing items match your current search/filter.";
+      packWrap.appendChild(empty);
+      return;
+    }
+
+    const cats = [...groups.keys()].sort((a,b) => a.localeCompare(b));
+
+    cats.forEach(cat => {
+      const group = document.createElement("div");
+      group.className = "packGroup";
+
+      const list = groups.get(cat);
+      const done = list.filter(x => x.done).length;
+
+      const header = document.createElement("div");
+      header.className = "packHeader";
+
+      const left = document.createElement("div");
+      left.innerHTML = `<div class="packTitle">${escapeHtml(cat)}</div>
+                        <div class="packMeta">
+                          <span class="badge">${done} / ${list.length} packed</span>
+                        </div>`;
+
+      const right = document.createElement("div");
+      right.className = "destActions";
+      const collapsed = !!state.ui.packCollapsed[cat];
+      right.appendChild(mkBtn(collapsed ? "Expand" : "Collapse", "small", () => {
+        pushUndo();
+        state.ui.packCollapsed[cat] = !state.ui.packCollapsed[cat];
+        save(false);
+        renderAll();
+      }));
+
+      header.appendChild(left);
+      header.appendChild(right);
+
+      header.addEventListener("click", (e) => {
+        if (e.target.closest("button")) return;
+        pushUndo();
+        state.ui.packCollapsed[cat] = !state.ui.packCollapsed[cat];
+        save(false);
+        renderAll();
+      });
+
+      group.appendChild(header);
+
+      const body = document.createElement("div");
+      body.classList.toggle("hidden", !!state.ui.packCollapsed[cat]);
+
+      list.forEach(it => {
+        const row = document.createElement("div");
+        row.className = "packRow";
+
+        const chk = document.createElement("input");
+        chk.type = "checkbox";
+        chk.className = "check";
+        chk.checked = !!it.done;
+        chk.addEventListener("change", () => {
+          pushUndo();
+          it.done = chk.checked;
+          save(false);
+          renderAll();
+        });
+
+        const main = document.createElement("div");
+        main.innerHTML = `
+          <div class="packName" style="${it.done ? "text-decoration:line-through; color:rgba(20,21,26,.55);" : ""}">${escapeHtml(it.name)} ${it.suggested ? `<span class="badge">Suggested</span>` : ""}</div>
+          <div class="mini">${it.qty ? `<span>🔢 ${escapeHtml(it.qty)}</span>` : ""}</div>
+        `;
+
+        const notes = document.createElement("div");
+        notes.className = "inlineEdit";
+        notes.contentEditable = "true";
+        notes.textContent = it.notes || "";
+        notes.addEventListener("blur", () => { pushUndo(); it.notes = notes.textContent.trim(); save(false); });
+
+        const hint = document.createElement("div");
+        hint.className = "inlineHint";
+        hint.textContent = "Click notes to edit (autosaves).";
+
+        main.appendChild(notes);
+        main.appendChild(hint);
+
+        const actions = document.createElement("div");
+        actions.className = "destActions";
+        actions.appendChild(mkBtn("Edit", "small", () => openEditPack(it.id)));
+        actions.appendChild(mkBtn("Delete", "small danger", () => deletePack(it.id)));
+
+        row.appendChild(chk);
+        row.appendChild(main);
+        row.appendChild(actions);
+
+        body.appendChild(row);
+      });
+
+      group.appendChild(body);
+      packWrap.appendChild(group);
+    });
+  }
+
+  function renderShortlist(){
+    const body = $("shortlistBody");
+    body.innerHTML = "";
+
+    state.destinations.forEach(d => {
+      const selHotels = d.hotels.filter(o => o.selected);
+      const selR = d.restaurants.filter(o => o.selected);
+      const selA = d.activities.filter(o => o.selected);
+      if (!selHotels.length && !selR.length && !selA.length) return;
+
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.marginBottom = "10px";
+
+      const title = document.createElement("div");
+      title.className = "destTitle";
+      title.textContent = `${d.emoji ? d.emoji+" " : ""}${d.name}`;
+      card.appendChild(title);
+
+      const makeList = (label, arr) => {
+        if (!arr.length) return;
+        const st = document.createElement("div");
+        st.className = "sectionTitle";
+        st.innerHTML = `<span><b>${label}</b></span><span class="badge">${arr.length}</span>`;
+        card.appendChild(st);
+        arr.forEach(o => {
+          const line = document.createElement("div");
+          line.className = "mini";
+          const bits = [];
+          bits.push(`• ${o.name}`);
+          if (o.area) bits.push(`(${o.area})`);
+          if (o.bookBy) bits.push(`Book by ${o.bookBy}`);
+          if (o.rating) bits.push(`⭐ ${o.rating}/5`);
+          line.innerHTML = escapeHtml(bits.join(" "));
+          if (o.link){
+            const a = document.createElement("a");
+            a.className = "link";
+            a.href = o.link; a.target="_blank"; a.rel="noopener";
+            a.textContent = "Link";
+            line.appendChild(document.createTextNode(" · "));
+            line.appendChild(a);
+          }
+          card.appendChild(line);
+        });
+      };
+
+      makeList("Hotels", selHotels);
+      makeList("Restaurants", selR);
+      makeList("Activities", selA);
+
+      body.appendChild(card);
+    });
+
+    if (!body.children.length){
+      const empty = document.createElement("div");
+      empty.className = "mutedSmall";
+      empty.textContent = "Nothing selected yet. Mark options as “Selected” to build your shortlist.";
+      body.appendChild(empty);
+    }
+  }
+
+  function deleteDest(destId){
+    if (state.destinations.length === 1){
+      alert("You need at least one destination.");
+      return;
+    }
+    const ok = confirm("Delete this destination and all its options?");
+    if (!ok) return;
+
+    pushUndo();
+    state.destinations = state.destinations.filter(d => d.id !== destId);
+
+    state.days.forEach(day => {
+      if (day.destId === destId) day.destId = "";
+      day.items.forEach(it => { if (it.refOptionId && !findOption(it.refOptionId)) it.refOptionId = ""; });
+    });
+
+    if (state.ui.lastDestId === destId) state.ui.lastDestId = state.destinations[0]?.id || "";
+    if (state.ui.lastItinDestId === destId) state.ui.lastItinDestId = state.destinations[0]?.id || "";
+
+    save(); renderAll();
+  }
+
+  function deleteOption(destId, key, optId){
+    const d = state.destinations.find(x => x.id === destId);
+    if (!d) return;
+    const ok = confirm("Delete this option?");
+    if (!ok) return;
+
+    pushUndo();
+    d[key] = d[key].filter(o => o.id !== optId);
+    state.days.forEach(day => day.items.forEach(it => { if (it.refOptionId === optId) it.refOptionId = ""; }));
+    save(); renderAll(); renderOptionRef();
+  }
+
+  function editDay(dayId){
+    const d = state.days.find(x => x.id === dayId);
+    if (!d) return;
+
+    const title = prompt("Day title:", d.title || "");
+    if (title === null) return;
+
+    const date = prompt("Date (optional):", d.date || "");
+    if (date === null) return;
+
+    const destName = prompt("Destination for this day (type destination name exactly, or leave blank):", getDestName(d.destId) || "");
+    if (destName === null) return;
+
+    pushUndo();
+
+    const destId = (destName.trim() ? findDestIdByName(destName.trim()) : "");
+    if (destName.trim() && !destId){
+      alert("Couldn't find that destination name. (Tip: copy/paste the destination name exactly.)");
+    }
+
+    d.title = title.trim() || d.title;
+    d.date = date.trim();
+    d.destId = destId || "";
+    save(); renderAll();
+  }
+
+  function duplicateDay(dayId){
+    const d = state.days.find(x => x.id === dayId);
+    if (!d) return;
+    pushUndo();
+    const copy = {
+      id: uid(),
+      title: (d.title ? d.title + " (copy)" : "Day (copy)"),
+      date: d.date,
+      destId: d.destId,
+      travelDay: d.travelDay,
+      collapsed: d.collapsed,
+      notesLoved: d.notesLoved,
+      notesSkip: d.notesSkip,
+      items: d.items.map(it => ({...deepClone(it), id: uid()}))
+    };
+    state.days.splice(state.days.findIndex(x => x.id === dayId) + 1, 0, copy);
+    state.ui.lastDayId = copy.id;
+    state.ui.todayDayId = copy.id;
+    save(); renderAll();
+  }
+
+  function deleteDay(dayId){
+    if (state.days.length === 1){
+      alert("You need at least one day.");
+      return;
+    }
+    const ok = confirm("Delete this day and all its items?");
+    if (!ok) return;
+    pushUndo();
+    state.days = state.days.filter(d => d.id !== dayId);
+    if (state.ui.lastDayId === dayId) state.ui.lastDayId = state.days[0]?.id || "";
+    if (state.ui.todayDayId === dayId) state.ui.todayDayId = state.ui.lastDayId || "";
+    save(); renderAll();
+  }
+
+  function deleteItem(dayId, itemId){
+    const d = state.days.find(x => x.id === dayId);
+    if (!d) return;
+    const ok = confirm("Delete this itinerary item?");
+    if (!ok) return;
+    pushUndo();
+    d.items = d.items.filter(it => it.id !== itemId);
+    save(); renderAll();
+  }
+
+  function deletePack(packId){
+    const ok = confirm("Delete this packing item?");
+    if (!ok) return;
+    pushUndo();
+    state.pack.items = state.pack.items.filter(x => x.id !== packId);
+    save(); renderAll();
+  }
+
+  function setDone(dayId, itemId, status){
+    const d = state.days.find(x => x.id === dayId);
+    const it = d?.items.find(x => x.id === itemId);
+    if (!it) return;
+    pushUndo();
+    it.doneStatus = status;
+    save(); renderAll();
+  }
+
+  function applyItineraryFilters(items, sortByTime=false){
+    const query = (state.ui.globalSearch || "").trim().toLowerCase();
+    const filter = state.ui.globalFilter || "all";
+
+    let out = items.slice();
+
+    if (filter === "booked") out = out.filter(it => it.status === "booked");
+    if (filter === "planned") out = out.filter(it => it.status !== "booked");
+    if (filter === "done") out = out.filter(it => it.doneStatus === "done");
+    if (filter === "skipped") out = out.filter(it => it.doneStatus === "skipped");
+
+    if (query){
+      out = out.filter(it => {
+        const tr = it.transport || {};
+        const blob = [
+          it.time,it.category,it.name,it.notes,
+          (it.tags||[]).join(","),
+          String(it.cost??""),
+          it.status,it.doneStatus,
+          tr.from,tr.to,tr.mode,tr.conf,tr.depart,tr.arrive,
+          it.bufferMin ? `buffer ${it.bufferMin}` : ""
+        ].join(" ").toLowerCase();
+        return blob.includes(query);
+      });
+    }
+
+    if (sortByTime){
+      out.sort((a,b) => (parseTimeToMinutes(a.time) ?? 1e9) - (parseTimeToMinutes(b.time) ?? 1e9));
+    }
+
+    return out;
+  }
+
+  function computeDayTotals(day){
+    const costs = day.items.map(it => Number.isFinite(it.cost) ? it.cost : null).filter(v => v !== null);
+    const booked = day.items.filter(it => it.status==="booked").map(it => Number.isFinite(it.cost) ? it.cost : null).filter(v=>v!==null);
+    return {
+      total: costs.length ? costs.reduce((a,b)=>a+b,0) : null,
+      booked: booked.length ? booked.reduce((a,b)=>a+b,0) : null
+    };
+  }
+
+  function computeDayWarnings(day){
+    const warnings = [];
+
+    const overlaps = new Map();
+    day.items.forEach(it => {
+      const m = parseTimeToMinutes(it.time);
+      if (!Number.isFinite(m)) return;
+      overlaps.set(m, (overlaps.get(m) || 0) + 1);
+    });
+    if ([...overlaps.values()].some(v => v >= 2)) warnings.push("Overlapping times");
+
+    const sorted = day.items
+      .map(it => ({ it, m: parseTimeToMinutes(it.time) }))
+      .filter(x => Number.isFinite(x.m))
+      .sort((a,b)=>a.m-b.m);
+
+    for (let i=0;i<sorted.length-1;i++){
+      const cur = sorted[i], next = sorted[i+1];
+      const buf = clampInt(cur.it.bufferMin, 0, 600) || 0;
+      if (buf && (cur.m + buf) > next.m){
+        warnings.push("Buffer conflicts");
+        break;
+      }
+    }
+
+    const times = sorted.map(x=>x.m);
+    const beforeNoon = times.filter(m => m < 12*60).length;
+    if (beforeNoon >= 4) warnings.push("4+ items before noon");
+
+    if (day.travelDay){
+      const nonEssential = day.items.filter(it => !isEssentialOnTravelDay(it.category)).length;
+      if (nonEssential >= 5) warnings.push("Heavy travel day schedule");
+    }
+
+    return warnings;
+  }
+
+  function computeItemWarnings(day){
+    const map = new Map();
+    const sorted = day.items
+      .map(it => ({ it, m: parseTimeToMinutes(it.time) }))
+      .filter(x => Number.isFinite(x.m))
+      .sort((a,b)=>a.m-b.m);
+
+    for (let i=0;i<sorted.length;i++){
+      const { it, m } = sorted[i];
+      const warnings = [];
+
+      if (day.travelDay && !isEssentialOnTravelDay(it.category)){
+        warnings.push("Travel day (consider fewer non-essential items)");
+      }
+
+      const buf = clampInt(it.bufferMin, 0, 600) || 0;
+      if (buf && i < sorted.length-1){
+        const next = sorted[i+1];
+        if ((m + buf) > next.m){
+          warnings.push(`Buffer overlaps next item`);
+        }
+      }
+
+      const overlapCount = day.items.filter(x => parseTimeToMinutes(x.time) === m).length;
+      if (overlapCount >= 2) warnings.push("Overlapping time");
+
+      if (warnings.length) map.set(it.id, warnings);
+    }
+    return map;
+  }
+
+  function getPackCategories(){
+    const cats = new Set((state.pack.items||[]).map(it => (it.category||"").trim() || "Uncategorized"));
+    return [...cats];
+  }
+  function rebuildPackCatFilter(){
+    const cats = getPackCategories().sort((a,b) => a.localeCompare(b));
+    packCatFilterEl.innerHTML = `<option value="">All categories</option>`;
+    cats.forEach(c => {
+      const o = document.createElement("option");
+      o.value = c;
+      o.textContent = c;
+      packCatFilterEl.appendChild(o);
+    });
+    packCatFilterEl.value = state.ui.packCatFilter || "";
+  }
+
+  function getDestLabel(destId){
+    const d = state.destinations.find(x => x.id === destId);
+    return d ? `${d.emoji ? d.emoji+" " : ""}${d.name}` : "";
+  }
+  function getDestName(destId){
+    const d = state.destinations.find(x => x.id === destId);
+    return d ? d.name : "";
+  }
+  function findDestIdByName(name){
+    const n = name.trim().toLowerCase();
+    const d = state.destinations.find(x => (x.name||"").trim().toLowerCase() === n);
+    return d ? d.id : "";
+  }
+
+  function getAllOptions(destId){
+    const d = state.destinations.find(x => x.id === destId);
+    if (!d) return [];
+    const out = [];
+    d.hotels.forEach(o => out.push({ id:o.id, label:`Hotel: ${o.name}` }));
+    d.restaurants.forEach(o => out.push({ id:o.id, label:`Restaurant: ${o.name}` }));
+    d.activities.forEach(o => out.push({ id:o.id, label:`Activity: ${o.name}` }));
+    return out;
+  }
+  function findOption(optionId){
+    for (const d of state.destinations){
+      for (const key of ["hotels","restaurants","activities"]){
+        const o = d[key].find(x => x.id === optionId);
+        if (o) return { dest:d, key, opt:o };
+      }
+    }
+    return null;
+  }
+  function getOptionLabel(optionId){
+    const found = findOption(optionId);
+    if (!found) return "";
+    const { key, opt } = found;
+    const prefix = key === "hotels" ? "Hotel" : key === "restaurants" ? "Restaurant" : "Activity";
+    return `${prefix}: ${opt.name}`;
+  }
+
+  function parseTags(str){
+    return (str||"")
+      .split(",")
+      .map(s => s.trim().toLowerCase())
+      .filter(Boolean)
+      .slice(0, 25);
+  }
+  function parseCost(v){
+    const s = String(v||"").replace(/[$,]/g,"").trim();
+    if (!s) return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  }
+  function parseQty(v){
+    return String(v||"").trim();
+  }
+  function money(n){
+    const x = Number(n);
+    if (!Number.isFinite(x)) return "";
+    return x.toLocaleString(undefined, { style:"currency", currency:"USD", maximumFractionDigits: 0 });
+  }
+  function clampInt(v, min, max){
+    const n = Number(String(v||"").trim());
+    if (!Number.isFinite(n)) return null;
+    const i = Math.round(n);
+    return Math.max(min, Math.min(max, i));
+  }
+
+  function parseTimeToMinutes(t){
+    const s = String(t||"").trim();
+    if (!s) return null;
+    const m = s.match(/^(\d{1,2})[:.](\d{2})$/);
+    if (!m) return null;
+    const hh = Number(m[1]), mm = Number(m[2]);
+    if (!(hh>=0 && hh<=23 && mm>=0 && mm<=59)) return null;
+    return hh*60 + mm;
+  }
+
+  function formatDateRange(start, end){
+    if (!start && !end) return "";
+    if (start && end) return `${start} → ${end}`;
+    return start ? `From ${start}` : `Until ${end}`;
+  }
+
+  function isEssentialOnTravelDay(category){
+    const c = (category||"").toLowerCase();
+    return c.includes("transport") || c.includes("hotel");
+  }
+
+  function colorClassForOptionKey(key){
+    if (key === "hotels") return "color-hotel";
+    if (key === "restaurants") return "color-restaurant";
+    return "color-activity";
+  }
+  function colorClassForItinCategory(cat){
+    const c = (cat||"").toLowerCase();
+    if (c.includes("hotel")) return "color-hotel";
+    if (c.includes("restaurant") || c.includes("cafe")) return "color-restaurant";
+    if (c.includes("transport")) return "color-transport";
+    return "color-activity";
+  }
+
+  function mkBtn(text, cls, onClick){
+    const b = document.createElement("button");
+    b.textContent = text;
+    b.className = cls || "";
+    b.addEventListener("click", (e) => { e.stopPropagation(); onClick(); });
+    return b;
+  }
+
+  function deepClone(obj){
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  function escapeHtml(str){
+    return String(str ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+  function escapeAttr(str){
+    return escapeHtml(str).replaceAll("`","&#096;");
+  }
+
+  function flash(el){
+    el.style.boxShadow = "0 0 0 3px rgba(255,77,109,.25)";
+    setTimeout(() => el.style.boxShadow = "", 350);
+  }
+
+  function getDragAfterElement(container, y){
+    const els = [...container.querySelectorAll(".item:not(.dragging)")];
+    return els.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset){
+        return { offset, element: child };
+      } else {
+        return closest;
+      }
+    }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+  }
+
+})();
+</script>
+</body>
+</html>
